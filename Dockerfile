@@ -18,7 +18,7 @@ COPY backend/src ./src
 RUN chmod +x gradlew && ./gradlew clean shadowJar --no-daemon
 
 # Stage 2: Runtime
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copy the built JAR from build stage
