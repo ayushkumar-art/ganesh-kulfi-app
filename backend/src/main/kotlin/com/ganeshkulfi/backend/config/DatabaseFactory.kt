@@ -17,16 +17,35 @@ object DatabaseFactory {
         // Parse DATABASE_URL from Render (postgresql://user:pass@host:port/db)
         // or use legacy DB_URL format (jdbc:postgresql://...)
         val databaseUrl = System.getenv("DATABASE_URL")
+        
+        logger.info("🔍 DATABASE_URL present: ${databaseUrl != null}")
+        if (databaseUrl != null) {
+            logger.info("🔍 DATABASE_URL starts with: ${databaseUrl.take(20)}...")
+        }
+        
         val (dbUrl, dbUser, dbPassword) = if (databaseUrl != null && databaseUrl.startsWith("postgres")) {
-            // Parse Render format: postgresql://user:password@host:port/database
-            val uri = java.net.URI(databaseUrl.replace("postgres://", "jdbc:postgresql://").replace("postgresql://", "jdbc:postgresql://"))
-            val url = "jdbc:postgresql://${uri.host}:${uri.port}${uri.path}"
-            val userInfo = uri.userInfo?.split(":")
-            val user = userInfo?.getOrNull(0) ?: "ganeshkulfi_user"
-            val pass = userInfo?.getOrNull(1) ?: "Ganesh@123"
-            Triple(url, user, pass)
+            try {
+                // Parse Render format: postgresql://user:password@host:port/database
+                val uri = java.net.URI(databaseUrl)
+                
+                val host = uri.host ?: throw IllegalArgumentException("Host is null in DATABASE_URL")
+                val port = if (uri.port > 0) uri.port else 5432
+                val path = uri.path ?: throw IllegalArgumentException("Path is null in DATABASE_URL")
+                val userInfo = uri.userInfo?.split(":") ?: throw IllegalArgumentException("UserInfo is null in DATABASE_URL")
+                
+                val url = "jdbc:postgresql://$host:$port$path"
+                val user = userInfo.getOrNull(0) ?: throw IllegalArgumentException("Username not found in DATABASE_URL")
+                val pass = userInfo.getOrNull(1) ?: throw IllegalArgumentException("Password not found in DATABASE_URL")
+                
+                logger.info("✅ Parsed DATABASE_URL successfully")
+                Triple(url, user, pass)
+            } catch (e: Exception) {
+                logger.error("❌ Failed to parse DATABASE_URL: ${e.message}")
+                throw e
+            }
         } else {
             // Legacy format for local development
+            logger.info("📝 Using legacy DB_URL format")
             Triple(
                 System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/ganeshkulfi_db",
                 System.getenv("DB_USER") ?: "ganeshkulfi_user",
