@@ -6,13 +6,13 @@ LABEL description="Ganesh Kulfi Backend - Production Ready"
 
 WORKDIR /app
 
-# Copy gradle files
-COPY build.gradle.kts settings.gradle.kts gradle.properties ./
-COPY gradle ./gradle
-COPY gradlew gradlew.bat ./
+# Copy gradle files from backend directory
+COPY backend/build.gradle.kts backend/settings.gradle.kts backend/gradle.properties ./
+COPY backend/gradle ./gradle
+COPY backend/gradlew backend/gradlew.bat ./
 
 # Copy source code
-COPY src ./src
+COPY backend/src ./src
 
 # Build the application
 RUN chmod +x gradlew && ./gradlew clean shadowJar --no-daemon
