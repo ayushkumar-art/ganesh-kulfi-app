@@ -18,8 +18,8 @@ object PriceOverrides : Table("price_override") {
     val id = integer("id").autoIncrement()
     val productId = char("product_id", 36)  // Foreign key to Products.id
     val tier = customEnumeration(
-        "tier",
-        "retailer_tier",
+        "retailer_tier",  // Database column name
+        "retailer_tier",  // PostgreSQL enum type name
         { value -> RetailerTier.valueOf(value as String) },
         { PGobject().apply { type = "retailer_tier"; value = it.name } }
     )

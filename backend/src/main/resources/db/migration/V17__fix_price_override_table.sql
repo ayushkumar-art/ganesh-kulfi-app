@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS price_override CASCADE;
 CREATE TABLE price_override (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     product_id VARCHAR(36) NOT NULL REFERENCES product(id) ON DELETE CASCADE,
-    tier pricing_tier NOT NULL,
+    retailer_tier retailer_tier NOT NULL,
     override_price NUMERIC(10, 2) NOT NULL,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -17,7 +17,7 @@ CREATE TABLE price_override (
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_price_override_product ON price_override(product_id);
-CREATE INDEX IF NOT EXISTS idx_price_override_tier ON price_override(tier);
+CREATE INDEX IF NOT EXISTS idx_price_override_retailer_tier ON price_override(retailer_tier);
 CREATE INDEX IF NOT EXISTS idx_price_override_active ON price_override(active);
 
 -- Create trigger for updated_at
