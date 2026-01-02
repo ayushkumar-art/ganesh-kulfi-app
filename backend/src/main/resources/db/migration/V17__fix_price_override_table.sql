@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_price_override_tier ON price_override(tier);
 CREATE INDEX IF NOT EXISTS idx_price_override_active ON price_override(active);
 
 -- Create trigger for updated_at
-DROP TRIGGER IF NOT EXISTS update_price_override_updated_at ON price_override;
+DROP TRIGGER IF EXISTS update_price_override_updated_at ON price_override;
 CREATE TRIGGER update_price_override_updated_at
     BEFORE UPDATE ON price_override
     FOR EACH ROW
