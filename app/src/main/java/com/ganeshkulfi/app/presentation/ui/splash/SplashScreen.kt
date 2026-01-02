@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ganeshkulfi.app.presentation.viewmodel.AuthViewModel
@@ -57,7 +58,9 @@ fun SplashScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.alpha(alphaAnim.value)
+            modifier = Modifier
+                .alpha(alphaAnim.value)
+                .padding(horizontal = 32.dp)
         ) {
             // TODO: Add your logo here
             // Image(
@@ -72,7 +75,9 @@ fun SplashScreen(
                 text = "Shree Ganesh Kulfi",
                 style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -80,7 +85,9 @@ fun SplashScreen(
             Text(
                 text = "The Authentic Taste of Tradition",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
