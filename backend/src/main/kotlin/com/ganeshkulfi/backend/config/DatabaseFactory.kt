@@ -14,12 +14,26 @@ object DatabaseFactory {
     private val logger = LoggerFactory.getLogger(DatabaseFactory::class.java)
     
     fun init() {
-        val dbUrl = System.getenv("DB_URL") 
-            ?: "jdbc:postgresql://localhost:5432/ganeshkulfi_db"
-        val dbUser = System.getenv("DB_USER") 
-            ?: "ganeshkulfi_user"
-        val dbPassword = System.getenv("DB_PASSWORD") 
-            ?: "Ganesh@123"
+        // Parse DATABASE_URL from Render (postgresql://user:pass@host:port/db)
+        // or use legacy DB_URL format (jdbc:postgresql://...)
+        val databaseUrl = System.getenv("DATABASE_URL")
+        val (dbUrl, dbUser, dbPassword) = if (databaseUrl != null && databaseUrl.startsWith("postgres")) {
+            // Parse Render format: postgresql://user:password@host:port/database
+            val uri = java.net.URI(databaseUrl.replace("postgres://", "jdbc:postgresql://").replace("postgresql://", "jdbc:postgresql://"))
+            val url = "jdbc:postgresql://${uri.host}:${uri.port}${uri.path}"
+            val userInfo = uri.userInfo?.split(":")
+            val user = userInfo?.getOrNull(0) ?: "ganeshkulfi_user"
+            val pass = userInfo?.getOrNull(1) ?: "Ganesh@123"
+            Triple(url, user, pass)
+        } else {
+            // Legacy format for local development
+            Triple(
+                System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/ganeshkulfi_db",
+                System.getenv("DB_USER") ?: "ganeshkulfi_user",
+                System.getenv("DB_PASSWORD") ?: "Ganesh@123"
+            )
+        }
+        
         val poolSize = System.getenv("DB_POOL_SIZE")?.toIntOrNull() 
             ?: 10
         
