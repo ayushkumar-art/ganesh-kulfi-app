@@ -71,11 +71,10 @@ class UserService(
         val user = userRepository.findByEmail(request.email)
             ?: return Result.failure(IllegalArgumentException("User not found with email: ${request.email}"))
         
-        // PASSWORD VERIFICATION DISABLED FOR TESTING
-        // Uncomment below to re-enable password verification:
-        // if (!passwordService.verifyPassword(request.password, user.passwordHash)) {
-        //     return Result.failure(IllegalArgumentException("Invalid email or password"))
-        // }
+        // Verify password
+        if (!passwordService.verifyPassword(request.password, user.passwordHash)) {
+            return Result.failure(IllegalArgumentException("Invalid email or password"))
+        }
         
         // Generate JWT token
         val token = jwtService.generateToken(user.id, user.email, user.role)
@@ -138,10 +137,8 @@ class UserService(
         // Auto-generate retailerId for RETAILER role if not provided
         val finalRetailerId = if (userRole == UserRole.RETAILER && request.retailerId.isNullOrBlank()) {
             val generated = "ret_${System.currentTimeMillis()}"
-            println("🔧 Auto-generated retailerId: $generated for ${request.email}")
             generated
         } else {
-            println("🔧 Using provided retailerId: ${request.retailerId} for ${request.email}")
             request.retailerId
         }
         

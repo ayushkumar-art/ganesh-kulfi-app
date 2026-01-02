@@ -37,6 +37,7 @@ fun HomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToOrders: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     onNavigateBack: (() -> Unit)? = null,
     isAdminPreview: Boolean = false,
     viewModel: FlavorViewModel = hiltViewModel()
@@ -91,6 +92,13 @@ fun HomeScreen(
                 },
                 actions = {
                     if (!isAdminPreview) {
+                        IconButton(onClick = onNavigateToProfile) {
+                            Icon(
+                                Icons.Default.Person,
+                                "Profile",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         IconButton(onClick = onNavigateToCart) {
                             Icon(
                                 Icons.Default.ShoppingCart,

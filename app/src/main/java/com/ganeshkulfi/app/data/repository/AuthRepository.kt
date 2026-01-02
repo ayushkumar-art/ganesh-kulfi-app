@@ -642,14 +642,6 @@ class AuthRepository @Inject constructor(
     }
 
     companion object {
-        // Admin credentials (hardcoded for demo)
-        private const val ADMIN_EMAIL = "admin@ganeshkulfi.com"
-        private const val ADMIN_PASSWORD = "admin123"
-        
-        // Test Retailer credentials (hardcoded for demo)
-        private const val RETAILER_EMAIL = "retailer@test.com"
-        private const val RETAILER_PASSWORD = "retailer123"
-        
         // SharedPreferences keys
         private const val KEY_USER_ID = "user_id"
         private const val KEY_EMAIL = "email"

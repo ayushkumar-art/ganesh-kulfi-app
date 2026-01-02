@@ -33,7 +33,6 @@ fun RetailerManagementScreen(
     val prefs = context.getSharedPreferences("kulfi_shared_prefs", android.content.Context.MODE_PRIVATE)
     val authToken = prefs.getString("auth_token", null) ?: "dummy-token-for-testing"
     
-    println("🔑 RetailerManagementScreen - Token: ${authToken.take(20)}...")
     
     val retailers by viewModel.retailers.collectAsState()
 

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ganeshkulfi.app.data.model.User
 import com.ganeshkulfi.app.presentation.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,8 +63,7 @@ fun ProfileScreen(
             // Profile Options
             if (isGuest) {
                 GuestProfileOptions(
-                    onNavigateToLogin = onNavigateToLogin,
-                    viewModel = viewModel
+                    onNavigateToLogin = onNavigateToLogin
                 )
             } else {
                 RegisteredUserOptions(
@@ -134,8 +134,7 @@ fun UserInfoCard(user: User, isGuest: Boolean) {
 
 @Composable
 fun GuestProfileOptions(
-    onNavigateToLogin: () -> Unit,
-    viewModel: AuthViewModel
+    onNavigateToLogin: () -> Unit
 ) {
     Text(
         text = "Guest Mode",
@@ -152,10 +151,7 @@ fun GuestProfileOptions(
     Spacer(modifier = Modifier.height(16.dp))
 
     Button(
-        onClick = {
-            viewModel.signOut()
-            onNavigateToLogin()
-        },
+        onClick = onNavigateToLogin,
         modifier = Modifier.fillMaxWidth()
     ) {
         Icon(Icons.Default.Person, "Create Account", modifier = Modifier.size(20.dp))
@@ -170,6 +166,9 @@ fun RegisteredUserOptions(
     isAdmin: Boolean = false,
     onNavigateToAdmin: () -> Unit = {}
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    
     Text(
         text = "Account Settings",
         style = MaterialTheme.typography.titleMedium,
@@ -216,7 +215,11 @@ fun RegisteredUserOptions(
     @OptIn(ExperimentalMaterial3Api::class)
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { /* TODO: Navigate to Orders */ }
+        onClick = { 
+            scope.launch { 
+                snackbarHostState.showSnackbar("Orders feature coming soon!") 
+            }
+        }
     ) {
         Row(
             modifier = Modifier
@@ -234,7 +237,11 @@ fun RegisteredUserOptions(
     @OptIn(ExperimentalMaterial3Api::class)
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { /* TODO: Navigate to Edit Profile */ }
+        onClick = { 
+            scope.launch { 
+                snackbarHostState.showSnackbar("Edit Profile feature coming soon!") 
+            }
+        }
     ) {
         Row(
             modifier = Modifier
@@ -252,7 +259,11 @@ fun RegisteredUserOptions(
     @OptIn(ExperimentalMaterial3Api::class)
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { /* TODO: Navigate to Settings */ }
+        onClick = { 
+            scope.launch { 
+                snackbarHostState.showSnackbar("Settings feature coming soon!") 
+            }
+        }
     ) {
         Row(
             modifier = Modifier
@@ -266,6 +277,9 @@ fun RegisteredUserOptions(
             Icon(Icons.Default.KeyboardArrowRight, "Go")
         }
     }
+    
+    // Snackbar Host
+    SnackbarHost(hostState = snackbarHostState)
 
     Spacer(modifier = Modifier.height(16.dp))
 

@@ -29,12 +29,9 @@ class RetailerViewModel @Inject constructor(
     val myOrders: StateFlow<List<Order>> = authRepository.currentUserFlow
         .flatMapLatest { user ->
             if (user != null) {
-                println("👤 Current user: email=${user.email}, retailerId=${user.retailerId}, id=${user.id}")
                 // Backend stores user.id (UUID) in orders, not the custom retailerId field
-                println("📋 Filtering orders for user.id: ${user.id}")
                 orderRepository.getRetailerOrdersFlow(user.id)
             } else {
-                println("⚠️ No user logged in")
                 flowOf(emptyList())
             }
         }
@@ -49,23 +46,15 @@ class RetailerViewModel @Inject constructor(
     init {
         // Fetch products from backend on initialization
         viewModelScope.launch {
-            println("🚀 RetailerViewModel: Initializing...")
             productRepository.fetchProducts()
             // Fetch orders on initialization
-            println("📥 RetailerViewModel: Fetching orders...")
             refreshOrders()
         }
     }
     
     fun refreshOrders() {
         viewModelScope.launch {
-            println("🔄 RefreshOrders: Starting...")
             val result = orderRepository.fetchRetailerOrders()
-            if (result.isSuccess) {
-                println("✅ RefreshOrders: Success - ${result.getOrNull()?.size} orders")
-            } else {
-                println("❌ RefreshOrders: Failed - ${result.exceptionOrNull()?.message}")
-            }
         }
     }
 
@@ -205,24 +194,16 @@ class RetailerViewModel @Inject constructor(
 
     fun placeQuickOrder(product: Product, quantity: Int, notes: String = "") {
         viewModelScope.launch {
-            println("🚀 placeQuickOrder called: product=${product.name}, qty=$quantity")
-            
             val currentUser = authRepository.currentUserFlow.first()
             if (currentUser == null) {
-                println("❌ User not logged in")
                 _orderPlacementStatus.value = OrderPlacementStatus.Error("User not logged in")
                 return@launch
             }
-            
-            println("✅ User: ${currentUser.email}")
 
             if (quantity <= 0) {
-                println("❌ Invalid quantity: $quantity")
                 _orderPlacementStatus.value = OrderPlacementStatus.Error("Invalid quantity")
                 return@launch
             }
-            
-            println("✅ Quantity valid: $quantity")
 
             _orderPlacementStatus.value = OrderPlacementStatus.Loading
 
@@ -232,15 +213,6 @@ class RetailerViewModel @Inject constructor(
                 val itemSubtotal = discountedPrice * quantity
                 val baseSubtotal = product.basePrice * quantity
                 val discountAmount = baseSubtotal - itemSubtotal
-                
-                println("💰 Order Calculation:")
-                println("   Product: ${product.name}, BasePrice: ₹${product.basePrice}")
-                println("   Quantity: $quantity")
-                println("   Tier: ${currentUser.pricingTier?.displayName}, Discount: $discountPercentage%")
-                println("   DiscountedPrice: ₹$discountedPrice")
-                println("   BaseSubtotal: ₹$baseSubtotal")
-                println("   ItemSubtotal: ₹$itemSubtotal")
-                println("   DiscountAmount: ₹$discountAmount")
 
                 val orderItem = OrderItem(
                     flavorId = product.id,

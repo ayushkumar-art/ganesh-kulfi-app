@@ -6,7 +6,9 @@ Use the following credentials to access the Admin Dashboard:
 
 ### Admin Credentials
 - **Email:** `admin@ganeshkulfi.com`
-- **Password:** `admin123`
+- **Password:** `Admin1234`
+
+> **Note:** These credentials are stored securely in the database with BCrypt password hashing. The hardcoded demo credentials have been removed from the app code for security.
 
 ## Features Available for Admin
 
@@ -51,7 +53,7 @@ Once logged in as admin, you will have access to:
 2. Click "Sign In" on the splash screen
 3. Enter admin credentials:
    - Email: `admin@ganeshkulfi.com`
-   - Password: `admin123`
+   - Password: `Admin1234`
 4. You'll be automatically redirected to the Admin Dashboard
 
 ### Option 2: From Profile (if already logged in as admin)

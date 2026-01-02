@@ -1,15 +1,27 @@
 package com.ganeshkulfi.app.data.repository
 
+import android.content.SharedPreferences
 import com.ganeshkulfi.app.data.model.Flavor
 import com.ganeshkulfi.app.data.model.InventoryItem
+import com.ganeshkulfi.app.data.remote.ApiService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class InventoryRepository @Inject constructor() {
+class InventoryRepository @Inject constructor(
+    private val apiService: ApiService,
+    private val sharedPreferences: SharedPreferences
+) {
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
     private val _inventory = MutableStateFlow<List<InventoryItem>>(emptyList())
     val inventoryFlow: Flow<List<InventoryItem>> = _inventory.asStateFlow()
@@ -17,6 +29,14 @@ class InventoryRepository @Inject constructor() {
     init {
         // Initialize inventory from flavors
         initializeInventory()
+        
+        // Start auto-refresh every 30 seconds
+        repositoryScope.launch {
+            while (isActive) {
+                fetchInventoryFromBackend()
+                delay(30_000) // Refresh every 30 seconds
+            }
+        }
     }
 
     private fun initializeInventory() {
@@ -37,6 +57,59 @@ class InventoryRepository @Inject constructor() {
                 reorderLevel = 20
             )
         }
+    }
+    
+    private suspend fun fetchInventoryFromBackend() {
+        try {
+            val token = sharedPreferences.getString("auth_token", null)
+            if (token.isNullOrEmpty()) {
+                println("⚠️ No auth token, skipping inventory sync")
+                return
+            }
+            
+            // Use admin endpoint to get products WITH stock info
+            val response = apiService.getAdminProducts("Bearer $token")
+            
+            if (response.isSuccessful && response.body() != null) {
+                val adminProducts = response.body()!!
+                val currentInventory = _inventory.value
+                val updatedInventory = adminProducts.map { product ->
+                    val existingItem = currentInventory.find { it.flavorId == product.id }
+                    
+                    InventoryItem(
+                        flavorId = product.id,
+                        flavorName = product.name,
+                        totalStock = product.stockQuantity,
+                        availableStock = product.availableQuantity,
+                        stockGivenToRetailers = product.reservedQuantity,
+                        soldToday = existingItem?.soldToday ?: 0,
+                        soldThisWeek = existingItem?.soldThisWeek ?: 0,
+                        soldThisMonth = existingItem?.soldThisMonth ?: 0,
+                        soldQuantity = existingItem?.soldQuantity ?: 0,
+                        costPrice = existingItem?.costPrice ?: (product.basePrice * 0.6),
+                        sellingPrice = product.basePrice,
+                        reorderLevel = existingItem?.reorderLevel ?: 20,
+                        lastRestockedAt = existingItem?.lastRestockedAt ?: 0L,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                }
+                
+                if (updatedInventory.isNotEmpty()) {
+                    _inventory.value = updatedInventory
+                    println("✅ Updated ${adminProducts.size} inventory items from backend")
+                    println("   Stock: ${updatedInventory.take(3).map { "${it.flavorName}: ${it.totalStock}" }}")
+                }
+            } else {
+                println("⚠️ Failed to fetch admin products: ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            println("❌ Error fetching inventory: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+    
+    suspend fun refreshInventory() {
+        fetchInventoryFromBackend()
     }
 
     suspend fun getAllInventory(): Result<List<InventoryItem>> {

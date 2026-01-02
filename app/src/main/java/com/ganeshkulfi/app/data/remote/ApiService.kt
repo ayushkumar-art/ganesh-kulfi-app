@@ -24,6 +24,9 @@ interface ApiService {
     @GET("/api/products")
     suspend fun getProducts(): Response<ApiResponse<ProductsData>>
     
+    @GET("/factory/products")
+    suspend fun getAdminProducts(@Header("Authorization") token: String): Response<List<AdminProduct>>
+    
     @GET("/api/admin/orders")
     suspend fun getOrders(@Header("Authorization") token: String): Response<ApiResponse<AdminOrdersResponse>>
     
@@ -130,7 +133,10 @@ data class UserDto(
     val role: String,
     val retailerId: String?,
     val shopName: String?,
-    val tier: String?
+    val tier: String?,
+    val isActive: Boolean? = true,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )
 
 data class ProductsData(
@@ -143,7 +149,29 @@ data class Product(
     val description: String,
     val basePrice: Double,
     val imageUrl: String?,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val stockQuantity: Int? = null,  // Backend stock quantity (admin only)
+    val minOrderQuantity: Int? = null
+)
+
+// Admin product with full stock details from /api/factory/products
+data class AdminProduct(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val basePrice: Double,
+    val category: String,
+    val imageUrl: String?,
+    val isAvailable: Boolean,
+    val isSeasonal: Boolean,
+    val stockQuantity: Int,
+    val reservedQuantity: Int,
+    val availableQuantity: Int,
+    val status: String,
+    val minOrderQuantity: Int,
+    val isActive: Boolean,
+    val createdAt: String,
+    val updatedAt: String
 )
 
 data class Order(

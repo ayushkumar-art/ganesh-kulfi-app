@@ -14,8 +14,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.format.DateTimeParseException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+// Helper function to parse ISO timestamp to epoch millis
+private fun parseIsoTimestamp(isoString: String?): Long {
+    if (isoString.isNullOrBlank()) return 0L
+    return try {
+        Instant.parse(isoString).toEpochMilli()
+    } catch (e: DateTimeParseException) {
+        0L
+    }
+}
 
 @Singleton
 class RetailerRepository @Inject constructor(
@@ -63,9 +75,9 @@ class RetailerRepository @Inject constructor(
                                     name = userDto.name,
                                     shopName = userDto.shopName ?: "Unknown Shop",
                                     phone = userDto.phone ?: "",
-                                    email = "", // Email not exposed in response for security
+                                    email = userDto.email,
                                     address = "", // Address not in backend model
-                                    totalOutstanding = 0.0, // TODO: Get from backend
+                                    totalOutstanding = 0.0, // Will be fetched from orders/payments
                                     creditLimit = when (userDto.tier?.uppercase()) {
                                         "GOLD" -> 50000.0
                                         "SILVER" -> 30000.0
@@ -78,29 +90,25 @@ class RetailerRepository @Inject constructor(
                                         "BASIC" -> PricingTier.BASIC
                                         else -> PricingTier.BASIC
                                     },
-                                    isActive = true, // TODO: Get from backend
-                                    createdAt = 0L, // TODO: Parse from backend timestamp
-                                    updatedAt = 0L
+                                    isActive = userDto.isActive ?: true,
+                                    createdAt = parseIsoTimestamp(userDto.createdAt),
+                                    updatedAt = parseIsoTimestamp(userDto.updatedAt)
                                 )
-                                println("🔑 Retailer: ${retailer.shopName} -> userId=${retailer.userId}, retailerId=${retailer.id}")
                                 retailer
                             }
                         
                         _retailers.value = retailers
                         _error.value = null
-                        println("✅ Fetched ${retailers.size} retailers from backend")
                     }
                 } else {
                     val errorMsg = response.body()?.message ?: "Failed to fetch retailers"
                     _error.value = errorMsg
-                    println("❌ Failed to fetch retailers: $errorMsg")
                 }
             } else {
-                println("⚠️ No auth token available, skipping retailer fetch")
+                // No auth token available
             }
         } catch (e: Exception) {
             _error.value = e.message
-            println("❌ Exception fetching retailers: ${e.message}")
             e.printStackTrace()
         } finally {
             _isLoading.value = false

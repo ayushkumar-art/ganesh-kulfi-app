@@ -197,7 +197,7 @@ The screen includes 3 sample orders for testing:
 
 ### Test Admin Direct Navigation
 1. **Build and install APK**
-2. **Login as admin:** admin@ganeshkulfi.com / admin123
+2. **Login as admin:** admin@ganeshkulfi.com / Admin1234
 3. **Expected:** App should go directly to Admin Dashboard
 4. **Should NOT see:** Product listing home screen
 

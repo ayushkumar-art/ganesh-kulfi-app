@@ -74,6 +74,34 @@ class AdminViewModel @Inject constructor(
 
     init {
         loadDashboardStats()
+        startAutoRefresh()
+        // Initial data refresh
+        refreshAllData()
+    }
+    
+    private fun startAutoRefresh() {
+        viewModelScope.launch {
+            // Auto-refresh all data every 15 seconds for faster updates
+            while (true) {
+                kotlinx.coroutines.delay(15_000) // 15 seconds
+                refreshAllData()
+            }
+        }
+    }
+    
+    /**
+     * Refresh all dashboard data immediately
+     */
+    fun refreshAllData() {
+        viewModelScope.launch {
+            val token = authRepository.getAuthToken()
+            if (!token.isNullOrEmpty()) {
+                // Refresh all data sources in parallel
+                launch { inventoryRepository.refreshInventory() }
+                launch { retailerRepository.refreshRetailers() }
+                launch { fetchOrders(token) }
+            }
+        }
     }
 
     private fun loadDashboardStats() {
@@ -83,20 +111,24 @@ class AdminViewModel @Inject constructor(
             combine(
                 inventoryRepository.inventoryFlow,
                 retailerRepository.retailersFlow,
-                stockTransactionRepository.transactionsFlow
-            ) { inventory, retailers, transactions ->
+                stockTransactionRepository.transactionsFlow,
+                _orders
+            ) { inventory, retailers, transactions, orders ->
                 
                 val totalStock = inventory.sumOf { it.totalStock }
                 val totalValue = inventory.sumOf { it.totalStock * it.costPrice }
-                val totalRevenue = inventory.sumOf { it.soldQuantity * it.sellingPrice }
-                val todaySales = calculateTodaySales(transactions)
+                // Calculate total revenue from actual confirmed/delivered orders
+                val totalRevenue = orders
+                    .filter { it.status == "CONFIRMED" || it.status == "DELIVERED" }
+                    .sumOf { it.totalAmount }
+                val todaySales = calculateTodaySalesFromOrders(orders)
                 val lowStockCount = inventory.count { it.availableStock < 20 }
                 val activeRetailers = retailers.count { it.isActive }
                 val totalOutstanding = retailers.sumOf { it.totalOutstanding }
                 val pendingPayments = transactions.count { 
                     it.paymentStatus == com.ganeshkulfi.app.data.model.PaymentStatus.PENDING 
                 }
-                val pendingOrders = _orders.value.count { 
+                val pendingOrders = orders.count { 
                     it.status == "PENDING" 
                 }
                 
@@ -125,6 +157,22 @@ class AdminViewModel @Inject constructor(
             .filter { it.transactionType == com.ganeshkulfi.app.data.model.TransactionType.GIVEN }
             .sumOf { it.totalAmount }
     }
+    
+    private fun calculateTodaySalesFromOrders(orders: List<com.ganeshkulfi.app.data.remote.Order>): Double {
+        val todayStart = System.currentTimeMillis() - (24 * 60 * 60 * 1000)
+        return orders
+            .filter { order ->
+                // Parse timestamp from order (format: 2026-01-02T...)
+                try {
+                    val timestamp = java.time.Instant.parse(order.createdAt).toEpochMilli()
+                    timestamp >= todayStart
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            .filter { it.status == "CONFIRMED" || it.status == "DELIVERED" }
+            .sumOf { it.totalAmount }
+    }
 
     // Inventory Operations
     fun updateStock(flavorId: String, quantity: Int) {
@@ -144,6 +192,31 @@ class AdminViewModel @Inject constructor(
             inventoryRepository.updatePrice(flavorId, costPrice, sellingPrice)
         }
     }
+    
+    // Manual refresh methods
+    fun refreshInventory() {
+        viewModelScope.launch {
+            inventoryRepository.refreshInventory()
+        }
+    }
+    
+    fun refreshRetailers() {
+        viewModelScope.launch {
+            retailerRepository.refreshRetailers()
+        }
+    }
+    
+    fun refreshDashboard() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            // Refresh both in parallel
+            launch { inventoryRepository.refreshInventory() }
+            launch { retailerRepository.refreshRetailers() }
+            // Wait a moment for data to update
+            kotlinx.coroutines.delay(500)
+            _isLoading.value = false
+        }
+    }
 
     // Retailer Operations
     fun addRetailer(retailer: Retailer) {
@@ -155,13 +228,10 @@ class AdminViewModel @Inject constructor(
     fun addRetailerWithCredentials(retailer: Retailer, email: String, password: String) {
         viewModelScope.launch {
             try {
-                println("🆕 Starting addRetailerWithCredentials for: ${retailer.shopName}")
-                
                 // First create the retailer to obtain a retailer id
                 val createdResult = retailerRepository.createRetailerAccount(retailer, email, password)
                 if (createdResult.isSuccess) {
                     val createdRetailer = createdResult.getOrThrow()
-                    println("✅ Retailer created locally: ${createdRetailer.id}")
 
                     // Register retailer credentials via backend API
                     // This ensures admin stays logged in after creating a retailer
@@ -178,23 +248,18 @@ class AdminViewModel @Inject constructor(
                     if (registerResult.isFailure) {
                         // If registration failed, log the error
                         val error = registerResult.exceptionOrNull()
-                        println("❌ ERROR: Retailer registration failed - ${error?.message}")
                         error?.printStackTrace()
                     } else {
-                        println("✅ SUCCESS: Retailer registered successfully on backend - $email")
                         // Refresh retailers from backend to show the new retailer
                         retailerRepository.refreshRetailers()
-                        println("🔄 Retailers list refreshed from backend")
                     }
                 } else {
                     // Failed to create retailer
                     val error = createdResult.exceptionOrNull()
-                    println("❌ ERROR: Failed to create retailer - ${error?.message}")
                     error?.printStackTrace()
                 }
             } catch (e: Exception) {
                 // Handle error
-                println("❌ ERROR: Exception in addRetailerWithCredentials - ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -337,7 +402,6 @@ class AdminViewModel @Inject constructor(
             try {
                 // Use userId (backend user ID) for update, not retailerId
                 val userIdToUpdate = if (retailer.userId.isNotEmpty()) retailer.userId else retailer.id
-                println("✏️ Attempting to update retailer: ${retailer.shopName} (User ID: $userIdToUpdate)")
                 
                 val request = UpdateUserRequest(
                     name = retailer.name,
@@ -350,14 +414,10 @@ class AdminViewModel @Inject constructor(
                 
                 val response = apiService.updateUser(userIdToUpdate, "Bearer $token", request)
                 if (response.isSuccessful && response.body()?.success == true) {
-                    println("✅ Retailer updated successfully via API")
                     // Refresh retailers from backend
                     retailerRepository.refreshRetailers()
-                } else {
-                    println("❌ Failed to update retailer: ${response.body()?.message}")
                 }
             } catch (e: Exception) {
-                println("❌ Exception updating retailer: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -371,17 +431,12 @@ class AdminViewModel @Inject constructor(
             try {
                 // Use userId (backend user ID) for deletion, not retailerId
                 val userIdToDelete = if (retailer.userId.isNotEmpty()) retailer.userId else retailer.id
-                println("🗑️ Attempting to delete retailer: ${retailer.shopName} (User ID: $userIdToDelete)")
                 val response = apiService.deleteUser(userIdToDelete, "Bearer $token")
                 if (response.isSuccessful && response.body()?.success == true) {
-                    println("✅ Retailer deleted successfully via API")
                     // Refresh retailers from backend
                     retailerRepository.refreshRetailers()
-                } else {
-                    println("❌ Failed to delete retailer: ${response.body()?.message}")
                 }
             } catch (e: Exception) {
-                println("❌ Exception deleting retailer: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -396,66 +451,41 @@ class AdminViewModel @Inject constructor(
             _ordersError.value = null
             
             try {
-                println("════════════════════════════════════════════")
-                println("🔄 FETCHING ORDERS - START")
-                println("   Token: ${token.take(20)}...")
-                println("   Token length: ${token.length}")
                 
                 val response = apiService.getOrders("Bearer $token")
                 
-                println("📡 Response code: ${response.code()}")
-                println("📡 Response isSuccessful: ${response.isSuccessful}")
-                println("📡 Response body success: ${response.body()?.success}")
-                println("📡 Response body message: ${response.body()?.message}")
                 
                 if (response.isSuccessful && response.body()?.success == true) {
                     val adminResponse = response.body()?.data
-                    println("📊 Admin response: $adminResponse")
-                    println("📊 Orders count: ${adminResponse?.orders?.size}")
                     
                     if (adminResponse != null) {
                         // Parse the orders from the admin dashboard response
                         val parsedOrders = adminResponse.orders.map { orderWithItems ->
-                            println("   🔍 Processing order: ${orderWithItems.order.orderNumber}")
                             // The order already has items nested, use the main order object
                             orderWithItems.order.copy(
                                 items = orderWithItems.items
                             )
                         }
                         
-                        println("✅ Setting orders in state: ${parsedOrders.size} orders")
-                        println("   Orders list hashCode before: ${_orders.value.hashCode()}")
                         _orders.value = parsedOrders
-                        println("   Orders list hashCode after: ${_orders.value.hashCode()}")
-                        println("✅ Orders state updated successfully")
-                        println("✅ Current _orders.value.size: ${_orders.value.size}")
-                        println("✅ StateFlow collectors should now receive update")
                         
                         parsedOrders.forEach { order ->
-                            println("   📦 ${order.orderNumber}: ${order.status}, ₹${order.totalAmount}, Items: ${order.items?.size ?: 0}")
                         }
                     } else {
                         _ordersError.value = "No data in response"
-                        println("❌ No data in response")
                     }
                 } else {
                     val errorBody = try { response.errorBody()?.string() } catch (e: Exception) { null }
                     val errorMsg = response.body()?.message ?: errorBody ?: "Failed to fetch orders (${response.code()})"
                     _ordersError.value = errorMsg
-                    println("❌ Failed to fetch orders: $errorMsg")
-                    println("   Response code: ${response.code()}")
                     if (errorBody != null) {
-                        println("   Error body: $errorBody")
                     }
                 }
             } catch (e: Exception) {
                 _ordersError.value = e.message ?: "Unknown error occurred"
-                println("❌ Exception fetching orders: ${e.message}")
                 e.printStackTrace()
             } finally {
                 _ordersLoading.value = false
-                println("🔄 FETCHING ORDERS - END")
-                println("════════════════════════════════════════════")
             }
         }
     }
@@ -467,11 +497,6 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             _ordersLoading.value = true
             try {
-                println("════════════════════════════════════════════")
-                println("🔄 UPDATING ORDER STATUS")
-                println("   Order ID: $orderId")
-                println("   New Status: $newStatus")
-                println("   Token: ${token.take(20)}...")
                 
                 val response = when (newStatus.lowercase()) {
                     "confirmed" -> apiService.confirmOrder(orderId, "Bearer $token")
@@ -479,26 +504,19 @@ class AdminViewModel @Inject constructor(
                     "out_for_delivery" -> apiService.outForDeliveryOrder(orderId, "Bearer $token")
                     "delivered" -> apiService.deliverOrder(orderId, "Bearer $token")
                     else -> {
-                        println("❌ Unknown status: $newStatus")
                         null
                     }
                 }
                 
-                println("📡 Response code: ${response?.code()}")
-                println("📡 Response isSuccessful: ${response?.isSuccessful}")
                 
                 if (response?.isSuccessful == true && response.body()?.success == true) {
-                    println("✅ Order status updated successfully!")
                     // Refresh orders to show updated status
                     fetchOrders(token)
                 } else {
                     val errorMsg = response?.body()?.message ?: "Failed to update order"
-                    println("❌ Error updating order: $errorMsg")
                     _ordersError.value = errorMsg
                 }
-                println("════════════════════════════════════════════")
             } catch (e: Exception) {
-                println("❌ Exception updating order: ${e.message}")
                 e.printStackTrace()
                 _ordersError.value = e.message ?: "Failed to update order"
             } finally {
@@ -514,30 +532,19 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             _ordersLoading.value = true
             try {
-                println("════════════════════════════════════════════")
-                println("🚫 CANCELLING ORDER")
-                println("   Order ID: $orderId")
-                println("   Reason: $reason")
-                println("   Token: ${token.take(20)}...")
                 
                 val request = CancelOrderRequest(reason)
                 val response = apiService.cancelOrder(orderId, "Bearer $token", request)
                 
-                println("📡 Response code: ${response.code()}")
-                println("📡 Response isSuccessful: ${response.isSuccessful}")
                 
                 if (response.isSuccessful && response.body()?.success == true) {
-                    println("✅ Order cancelled successfully!")
                     // Refresh orders to show updated status
                     fetchOrders(token)
                 } else {
                     val errorMsg = response.body()?.message ?: "Failed to cancel order"
-                    println("❌ Error cancelling order: $errorMsg")
                     _ordersError.value = errorMsg
                 }
-                println("════════════════════════════════════════════")
             } catch (e: Exception) {
-                println("❌ Exception cancelling order: ${e.message}")
                 e.printStackTrace()
                 _ordersError.value = e.message ?: "Failed to cancel order"
             } finally {

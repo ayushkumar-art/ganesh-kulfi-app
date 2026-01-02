@@ -185,7 +185,7 @@ backend/
 
 ### Experiment 1: View Database
 1. Open http://localhost:5050
-2. Login: `admin@ganeshkulfi.com` / `admin123`
+2. Login: `admin@ganeshkulfi.com` / `Admin1234`
 3. Add server (see BACKEND_SETUP.md)
 4. Explore `app_user` table
 5. See 2 pre-loaded users
@@ -346,7 +346,7 @@ ACCESS:
 CREDENTIALS:
   DB User:  ganeshkulfi
   DB Pass:  kulfi_secret_2024
-  pgAdmin:  admin@ganeshkulfi.com / admin123
+  pgAdmin:  admin@ganeshkulfi.com / Admin1234
 
 ═══════════════════════════════════════════════════
 ```

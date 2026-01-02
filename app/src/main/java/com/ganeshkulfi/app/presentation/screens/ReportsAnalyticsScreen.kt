@@ -169,25 +169,29 @@ fun ReportsAnalyticsScreen(
                     val soldStock = inventory.sumOf { it.soldQuantity }
                     val stockValue = inventory.sumOf { it.availableStock * it.sellingPrice }
                     
+                    // Safe totals with minimum value of 1 to prevent division by zero in UI
+                    val safeTotalStock = if (totalStock > 0) totalStock else 1
+                    val safeInventorySize = if (inventory.isNotEmpty()) inventory.size else 1
+                    
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         CircularMetric(
                             value = availableStock,
-                            total = totalStock,
+                            total = safeTotalStock,
                             label = "Available",
                             color = MaterialTheme.colorScheme.primary
                         )
                         CircularMetric(
                             value = soldStock,
-                            total = totalStock,
+                            total = safeTotalStock,
                             label = "Sold",
                             color = MaterialTheme.colorScheme.tertiary
                         )
                         CircularMetric(
                             value = dashboardStats.lowStockItems,
-                            total = inventory.size,
+                            total = safeInventorySize,
                             label = "Low Stock",
                             color = MaterialTheme.colorScheme.error,
                             showPercentage = false
@@ -338,23 +342,52 @@ fun ReportsAnalyticsScreen(
                         .sortedByDescending { it.soldQuantity }
                         .take(5)
                     val maxSold = topItems.maxOfOrNull { it.soldQuantity } ?: 1
-
-                    topItems.forEachIndexed { index, item ->
-                        TopSellingItem(
-                            rank = index + 1,
-                            name = item.flavorName,
-                            price = item.sellingPrice,
-                            soldQuantity = item.soldQuantity,
-                            maxSold = maxSold,
-                            color = when (index) {
-                                0 -> MaterialTheme.colorScheme.primary
-                                1 -> MaterialTheme.colorScheme.secondary
-                                2 -> MaterialTheme.colorScheme.tertiary
-                                else -> MaterialTheme.colorScheme.outline
+                    
+                    if (topItems.isEmpty()) {
+                        // Show empty state
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Default.TrendingUp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "No sales data yet",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                "Start selling to see top performers",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    } else {
+                        topItems.forEachIndexed { index, item ->
+                            TopSellingItem(
+                                rank = index + 1,
+                                name = item.flavorName,
+                                price = item.sellingPrice,
+                                soldQuantity = item.soldQuantity,
+                                maxSold = maxSold,
+                                color = when (index) {
+                                    0 -> MaterialTheme.colorScheme.primary
+                                    1 -> MaterialTheme.colorScheme.secondary
+                                    2 -> MaterialTheme.colorScheme.tertiary
+                                    else -> MaterialTheme.colorScheme.outline
+                                }
+                            )
+                            if (index < topItems.size - 1) {
+                                Spacer(modifier = Modifier.height(12.dp))
                             }
-                        )
-                        if (index < topItems.size - 1) {
-                            Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
                 }
@@ -394,52 +427,82 @@ fun ReportsAnalyticsScreen(
                     val totalProfit = inventory.sumOf { it.totalProfit }
                     val totalCost = inventory.sumOf { it.soldQuantity * it.costPrice }
                     val profitMargin = if (totalCost > 0) (totalProfit / totalCost) * 100 else 0.0
+                    val avgProfitPerItem = if (inventory.isNotEmpty() && totalProfit > 0) totalProfit / inventory.size else 0.0
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ProfitMetricCard(
-                            modifier = Modifier.weight(1f),
-                            label = "Total Profit",
-                            value = "₹${String.format("%.0f", totalProfit)}",
-                            icon = Icons.Default.TrendingUp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        ProfitMetricCard(
-                            modifier = Modifier.weight(1f),
-                            label = "Margin",
-                            value = "${String.format("%.1f", profitMargin)}%",
-                            icon = Icons.Default.Percent,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    // Average profit per item
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Row(
+                    if (inventory.isEmpty() || totalProfit == 0.0) {
+                        // Show empty state
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(vertical = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
+                            Icon(
+                                Icons.Default.AccountBalance,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                "Average Profit per Item",
-                                style = MaterialTheme.typography.bodyLarge
+                                "No profit data yet",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                "₹${String.format("%.0f", if (inventory.isNotEmpty()) totalProfit / inventory.size else 0.0)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
+                                "Sales will generate profit analysis",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            ProfitMetricCard(
+                                modifier = Modifier.weight(1f),
+                                label = "Total Profit",
+                                value = "₹${String.format("%.0f", totalProfit)}",
+                                icon = Icons.Default.TrendingUp,
                                 color = MaterialTheme.colorScheme.primary
                             )
+                            ProfitMetricCard(
+                                modifier = Modifier.weight(1f),
+                                label = "Margin",
+                                value = "${String.format("%.1f", profitMargin)}%",
+                                icon = Icons.Default.Percent,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // Average profit per item
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Average Profit per Item",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    "₹${String.format("%.0f", avgProfitPerItem)}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }
@@ -508,6 +571,11 @@ fun CircularMetric(
             modifier = Modifier.size(80.dp)
         ) {
             val progress = if (total > 0) (value.toFloat() / total) else 0f
+            val displayText = if (showPercentage) {
+                if (total > 0) "${(progress * 100).toInt()}%" else "0%"
+            } else {
+                "$value"
+            }
             
             Canvas(modifier = Modifier.size(80.dp)) {
                 // Background circle
@@ -531,7 +599,7 @@ fun CircularMetric(
             }
             
             Text(
-                text = if (showPercentage) "${(progress * 100).toInt()}%" else "$value",
+                text = displayText,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = color

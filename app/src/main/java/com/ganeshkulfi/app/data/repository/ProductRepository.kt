@@ -52,24 +52,17 @@ class ProductRepository @Inject constructor(
     suspend fun fetchProducts(): Result<List<Product>> {
         return withContext(Dispatchers.IO) {
             try {
-                println("📦 Fetching products from backend...")
                 val response = apiService.getProducts()
                 if (response.isSuccessful && response.body()?.success == true) {
                     val products = response.body()?.data?.products ?: emptyList()
                     _products.value = products
-                    println("✅ Fetched ${products.size} products from backend")
-                    products.forEach { p ->
-                        println("   - ${p.name}: ₹${p.basePrice}")
-                    }
                     Result.success(products)
                 } else {
                     val errorMsg = "Failed to fetch products (${response.code()})"
-                    println("❌ $errorMsg")
                     Result.failure(Exception(errorMsg))
                 }
             } catch (e: Exception) {
                 // Keep default products on error
-                println("❌ Exception fetching products: ${e.message}")
                 e.printStackTrace()
                 Result.failure(e)
             }

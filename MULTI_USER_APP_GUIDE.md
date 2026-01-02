@@ -19,14 +19,14 @@ Your app now supports **BOTH factory owner AND retailers** using the same Androi
 ### Factory Owner Login
 ```
 Email: admin@ganeshkulfi.com
-Password: admin123
+Password: Admin1234
 ```
 **What they see:** Admin Dashboard with full management controls
 
 ### Test Retailer Login
 ```
 Email: retailer@test.com
-Password: retailer123
+Password: Retailer1234
 ```
 **What they see:** Retailer Home Screen with:
 - Shop Name: Kumar Sweet Shop
@@ -208,7 +208,7 @@ Displays products with discounts
 
 ### Test 2: Retailer Login
 1. Logout from admin
-2. Login with `retailer@test.com` / `retailer123`
+2. Login with `retailer@test.com` / `Retailer1234`
 3. **Expected:** Should see Retailer Home Screen with:
    - "Welcome Back, Rajesh Kumar"
    - "Kumar Sweet Shop" in header

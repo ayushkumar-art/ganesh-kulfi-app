@@ -121,6 +121,9 @@ fun NavGraph(
                 onNavigateToOrders = {
                     navController.navigate(Screen.Orders.route)
                 },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                },
                 onNavigateBack = if (isFromAdmin) {
                     { 
                         navController.navigate(Screen.Admin.route) {
@@ -215,7 +218,8 @@ fun NavGraph(
                     }
                 },
                 onRetailerClick = { retailerId ->
-                    // TODO: Navigate to retailer details
+                    // Retailer details screen not yet implemented
+                    // Future: navController.navigate("admin/retailers/$retailerId")
                 }
             )
         }

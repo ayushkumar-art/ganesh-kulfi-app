@@ -6,6 +6,7 @@ import com.ganeshkulfi.backend.data.models.OrderStatus
 import com.ganeshkulfi.backend.data.models.UserRole
 import com.ganeshkulfi.backend.data.repository.OrderRepository
 import com.ganeshkulfi.backend.data.repository.OrderTimelineRepository
+import com.ganeshkulfi.backend.data.repository.ProductRepository
 import com.ganeshkulfi.backend.data.repository.UserRepository
 import com.ganeshkulfi.backend.services.NotificationService
 import com.ganeshkulfi.backend.services.OrderService
@@ -21,20 +22,22 @@ import kotlinx.serialization.Serializable
 /**
  * Day 11: Factory Order Status Update Routes
  * Admin/Factory owner can update order status with automatic notifications
+ * Auto-reduces stock when order is confirmed
  */
 fun Route.factoryOrderStatusRoutes(
     orderService: OrderService,
     orderRepository: OrderRepository,
     orderTimelineRepository: OrderTimelineRepository,
     userRepository: UserRepository,
-    notificationService: NotificationService
+    notificationService: NotificationService,
+    productRepository: ProductRepository
 ) {
     
     authenticate("auth-jwt") {
         route("/api/orders/{orderId}") {
             
             /**
-             * Confirm Order
+             * Confirm Order - Auto reduces stock
              * POST /api/orders/{orderId}/confirm
              */
             post("/confirm") {
@@ -46,7 +49,8 @@ fun Route.factoryOrderStatusRoutes(
                     orderRepository = orderRepository,
                     orderTimelineRepository = orderTimelineRepository,
                     userRepository = userRepository,
-                    notificationService = notificationService
+                    notificationService = notificationService,
+                    productRepository = productRepository
                 )
             }
             
@@ -63,7 +67,8 @@ fun Route.factoryOrderStatusRoutes(
                     orderRepository = orderRepository,
                     orderTimelineRepository = orderTimelineRepository,
                     userRepository = userRepository,
-                    notificationService = notificationService
+                    notificationService = notificationService,
+                    productRepository = productRepository
                 )
             }
             
@@ -80,7 +85,8 @@ fun Route.factoryOrderStatusRoutes(
                     orderRepository = orderRepository,
                     orderTimelineRepository = orderTimelineRepository,
                     userRepository = userRepository,
-                    notificationService = notificationService
+                    notificationService = notificationService,
+                    productRepository = productRepository
                 )
             }
             
@@ -97,7 +103,8 @@ fun Route.factoryOrderStatusRoutes(
                     orderRepository = orderRepository,
                     orderTimelineRepository = orderTimelineRepository,
                     userRepository = userRepository,
-                    notificationService = notificationService
+                    notificationService = notificationService,
+                    productRepository = productRepository
                 )
             }
             
@@ -154,7 +161,7 @@ fun Route.factoryOrderStatusRoutes(
 }
 
 /**
- * Handle order status update with notification
+ * Handle order status update with notification and auto stock reduction
  */
 private suspend fun handleOrderStatusUpdate(
     call: ApplicationCall,
@@ -164,7 +171,8 @@ private suspend fun handleOrderStatusUpdate(
     orderRepository: OrderRepository,
     orderTimelineRepository: OrderTimelineRepository,
     userRepository: UserRepository,
-    notificationService: NotificationService
+    notificationService: NotificationService,
+    productRepository: ProductRepository
 ) {
     try {
         val principal = call.principal<JWTPrincipal>()
@@ -199,6 +207,21 @@ private suspend fun handleOrderStatusUpdate(
         } catch (e: IllegalArgumentException) {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid order status: $newStatus"))
             return
+        }
+        
+        // Auto-reduce stock when order is CONFIRMED (first confirmation only)
+        if (newStatus == "CONFIRMED" && order.status != OrderStatus.CONFIRMED) {
+            val orderItems = orderRepository.getOrderItems(orderId)
+            orderItems.forEach { item ->
+                try {
+                    val product = productRepository.findById(item.productId)
+                    if (product != null) {
+                        val newStock = (product.stockQuantity - item.quantity).coerceAtLeast(0)
+                        productRepository.updateProductStock(item.productId, newStock)
+                    }
+                } catch (e: Exception) {
+                }
+            }
         }
         
         val updateResult = orderRepository.updateStatus(orderId, orderStatus, userId)

@@ -162,46 +162,67 @@ fun ProductCatalogScreen(
             }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Search Bar
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-            )
-            
-            // Product List
-            if (filteredProducts.isEmpty()) {
+        if (filteredProducts.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // Search Bar
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
                 EmptyProductState(searchQuery.isNotBlank())
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(filteredProducts, key = { it.id }) { product ->
-                        val cartQuantity = cartItems[product.id]?.quantity ?: 0
-                        ModernProductCard(
-                            product = product,
-                            cartQuantity = cartQuantity,
-                            onAddToCart = { cartViewModel.addToCart(product, 1) },
-                            onIncrement = { cartViewModel.addToCart(product, 1) },
-                            onDecrement = { 
-                                cartViewModel.updateQuantity(product.id, cartQuantity - 1)
-                            },
-                            onSetQuantity = { quantity ->
-                                cartViewModel.updateQuantity(product.id, quantity)
-                            }
-                        )
-                    }
-                    
-                    // Bottom spacer for FAB
-                    item {
-                        Spacer(Modifier.height(80.dp))
-                    }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                // Welcome Banner
+                item {
+                    RetailerWelcomeBanner()
+                }
+                
+                // Search Bar
+                item {
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
+                
+                // Product List
+                items(filteredProducts, key = { it.id }) { product ->
+                    val cartQuantity = cartItems[product.id]?.quantity ?: 0
+                    ModernProductCard(
+                        product = product,
+                        cartQuantity = cartQuantity,
+                        onAddToCart = { cartViewModel.addToCart(product, 1) },
+                        onIncrement = { cartViewModel.addToCart(product, 1) },
+                        onDecrement = { 
+                            cartViewModel.updateQuantity(product.id, cartQuantity - 1)
+                        },
+                        onSetQuantity = { quantity ->
+                            cartViewModel.updateQuantity(product.id, quantity)
+                        }
+                    )
+                }
+                
+                // Brand Story Section
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    RetailerBrandStoryCard()
+                }
+                
+                // Contact Section
+                item {
+                    RetailerContactCard()
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
@@ -657,4 +678,209 @@ fun CustomQuantityDialog(
             }
         }
     )
+}
+
+@Composable
+fun RetailerWelcomeBanner() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    )
+                )
+                .padding(24.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = "Welcome to",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Shree Ganesh Kulfi",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Experience the rich, creamy delight handcrafted with love in Kopargaon",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RetailerBrandStoryCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Icon(
+                Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Our Heritage",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "A Legacy of Sweetness",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Founded by Ganesh Raut, Shri Ganesh Kulfi is more than just a sweet shop; it's a cherished tradition passed down through generations. Our journey began in the heart of Kopargaon with a simple mission: to share the authentic, unforgettable taste of homemade kulfi with our community.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.9f),
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.4
+            )
+        }
+    }
+}
+
+@Composable
+fun RetailerContactCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Store,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Visit Us",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Location
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Card(
+                    modifier = Modifier.size(40.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    shape = CircleShape
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Location",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = "Location",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Kopargaon, Maharashtra",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            
+            // Phone
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Card(
+                    modifier = Modifier.size(40.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    ),
+                    shape = CircleShape
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Phone,
+                            contentDescription = "Phone",
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = "Contact",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Contact us for orders",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
 }

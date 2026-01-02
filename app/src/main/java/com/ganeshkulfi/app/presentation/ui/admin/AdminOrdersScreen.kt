@@ -40,21 +40,10 @@ fun AdminOrdersScreen(
     
     // Debug logging
     SideEffect {
-        println("════════════════════════════════════════════")
-        println("🔑 TOKEN CHECK in AdminOrdersScreen:")
-        println("   SharedPreferences name: kulfi_shared_prefs")
-        println("   Token exists: ${authToken != null}")
-        println("   Token length: ${authToken?.length ?: 0}")
         if (authToken != null) {
-            println("   Token preview: ${authToken.take(30)}...")
-            println("   Token starts with 'eyJ': ${authToken.startsWith("eyJ")}")
         } else {
-            println("   ❌ NO TOKEN FOUND IN SHARED PREFERENCES!")
-            println("   Checking all keys in SharedPreferences...")
             val allKeys = prefs.all.keys
-            println("   Available keys: ${allKeys.joinToString(", ")}")
         }
-        println("════════════════════════════════════════════")
     }
     
     if (authToken == null || authToken.isBlank()) {
@@ -127,7 +116,6 @@ fun AdminOrdersScreen(
         return
     }
     
-    println("🔑 Using auth token: ${authToken.take(20)}...")
     
     // Collect orders from ViewModel - with explicit initial value
     val backendOrders by viewModel.orders.collectAsState(initial = emptyList())
@@ -136,22 +124,13 @@ fun AdminOrdersScreen(
     
     // Debug logging - use SideEffect to ensure it runs on every recomposition
     SideEffect {
-        println("════════════════════════════════════════════")
-        println("📱 AdminOrdersScreen RECOMPOSED:")
-        println("   backendOrders.size: ${backendOrders.size}")
-        println("   isLoading: $isLoading")
-        println("   errorMessage: $errorMessage")
         backendOrders.forEachIndexed { index, order ->
-            println("   [$index] Order: ${order.orderNumber}, Status: ${order.status}, Amount: ${order.totalAmount}")
         }
-        println("════════════════════════════════════════════")
     }
     
     // Convert backend Order DTOs to UI OrderInfo models - directly depend on backendOrders
     val orders = remember(backendOrders) {
-        println("🔄 Converting ${backendOrders.size} backend orders to UI models (key: ${backendOrders.hashCode()})")
         val converted = backendOrders.map { order ->
-            println("   Order: id=${order.id}, number=${order.orderNumber}")
             OrderInfo(
                 orderId = order.id,              // Use UUID for API calls
                 orderNumber = order.orderNumber,  // Keep for display
@@ -163,7 +142,6 @@ fun AdminOrdersScreen(
                 timestamp = parseTimestamp(order.createdAt)
             )
         }
-        println("✅ Converted to ${converted.size} UI orders")
         converted
     }
     
@@ -194,12 +172,6 @@ fun AdminOrdersScreen(
     
     // Fetch orders on first load
     LaunchedEffect(Unit) {
-        println("════════════════════════════════════════════")
-        println("📱 AdminOrdersScreen: LaunchedEffect triggered")
-        println("   Auth token: ${authToken.take(20)}...")
-        println("   Auth token length: ${authToken.length}")
-        println("   Calling viewModel.fetchOrders()...")
-        println("════════════════════════════════════════════")
         viewModel.fetchOrders(authToken)
     }
 
@@ -466,7 +438,6 @@ fun AdminOrdersScreen(
                     // Manual Refresh Button
                     Button(
                         onClick = {
-                            println("🔄 Manual Refresh Button Clicked!")
                             viewModel.fetchOrders(authToken)
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -602,23 +573,18 @@ fun AdminOrdersScreen(
                     OrderCard(
                         order = order,
                         onConfirm = { 
-                            println("🔘 Confirm button clicked for order: ${order.orderId}")
                             viewModel.updateOrderStatus(order.orderId, "confirmed", authToken)
                         },
                         onCancel = { 
-                            println("🔘 Cancel button clicked for order: ${order.orderId}")
                             viewModel.cancelOrder(order.orderId, "Cancelled by admin", authToken)
                         },
                         onPack = { 
-                            println("🔘 Pack button clicked for order: ${order.orderId}")
                             viewModel.updateOrderStatus(order.orderId, "packed", authToken)
                         },
                         onOutForDelivery = { 
-                            println("🔘 Out for Delivery button clicked for order: ${order.orderId}")
                             viewModel.updateOrderStatus(order.orderId, "out_for_delivery", authToken)
                         },
                         onDeliver = { 
-                            println("🔘 Deliver button clicked for order: ${order.orderId}")
                             viewModel.updateOrderStatus(order.orderId, "delivered", authToken)
                         },
                         isLoading = isLoading
@@ -797,9 +763,6 @@ private fun OrderCard(
                     "pending" -> {
                         Button(
                             onClick = {
-                                println("✅ Confirm button CLICKED!")
-                                println("   Order Number: ${order.orderNumber}")
-                                println("   Order ID (UUID): ${order.orderId}")
                                 onConfirm()
                             },
                             modifier = Modifier.weight(1f),
@@ -822,9 +785,6 @@ private fun OrderCard(
                         }
                         OutlinedButton(
                             onClick = {
-                                println("❌ Cancel button CLICKED!")
-                                println("   Order Number: ${order.orderNumber}")
-                                println("   Order ID (UUID): ${order.orderId}")
                                 onCancel()
                             },
                             modifier = Modifier.weight(1f),

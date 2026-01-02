@@ -85,11 +85,8 @@ object DatabaseConfig {
         val pending = migrationInfo.pending().size
         
         if (pending > 0) {
-            println("⏳ Running $pending pending PostgreSQL Flyway migration(s)...")
             flyway.migrate()
-            println("✅ Flyway migrations completed successfully!")
         } else {
-            println("✅ No pending Flyway migrations")
         }
     }
 }

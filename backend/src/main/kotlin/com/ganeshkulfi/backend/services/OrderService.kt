@@ -4,6 +4,7 @@ import com.ganeshkulfi.backend.data.dto.*
 import com.ganeshkulfi.backend.data.models.OrderStatus
 import com.ganeshkulfi.backend.data.models.Products
 import com.ganeshkulfi.backend.data.repository.OrderRepository
+import com.ganeshkulfi.backend.data.repository.ProductRepository
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -11,11 +12,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * Order Service
  * Business logic for order management with inventory integration
  * Day 9: Enhanced with PricingService for tier-based pricing
+ * Auto stock reduction when orders are confirmed/delivered
  */
 class OrderService(
     private val orderRepository: OrderRepository,
     private val inventoryService: InventoryService,
-    private val pricingService: PricingService
+    private val pricingService: PricingService,
+    private val productRepository: ProductRepository
 ) {
     
     /**
@@ -181,8 +184,8 @@ class OrderService(
     }
     
     /**
-     * Update order status (Factory Owner) - No automatic stock management
-     * Admin manually manages stock through factory/products endpoints
+     * Update order status (Factory Owner) - With automatic stock reduction
+     * When order is confirmed or delivered, stock is automatically reduced
      */
     fun updateOrderStatus(
         orderId: String,
@@ -190,9 +193,11 @@ class OrderService(
         updatedBy: String
     ): Result<OrderResponse> {
         return try {
-            // Check if order exists
-            orderRepository.findById(orderId)
+            // Get the order with its items
+            val order = orderRepository.findById(orderId)
                 ?: return Result.failure(Exception("Order not found"))
+            
+            val currentStatus = order.status
             
             // Validate status
             val newStatus = try {
@@ -206,8 +211,28 @@ class OrderService(
                 return Result.failure(Exception("Rejection reason is required"))
             }
             
-            // No automatic stock management - admin handles this manually
-            // Admin can use PATCH /factory/products/:id/stock to adjust inventory
+            // Automatic stock reduction when confirming or delivering order
+            // Only reduce stock when transitioning TO confirmed/delivered (not if already in that state)
+            if ((newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.DELIVERED) && 
+                currentStatus != OrderStatus.CONFIRMED && currentStatus != OrderStatus.DELIVERED) {
+                
+                
+                // Get order items
+                val orderItems = orderRepository.getOrderItems(orderId)
+                
+                // Reduce stock for each item
+                orderItems.forEach { item ->
+                    try {
+                        val product = productRepository.findById(item.productId)
+                        if (product != null) {
+                            val newStock = (product.stockQuantity - item.quantity).coerceAtLeast(0)
+                            productRepository.updateProductStock(item.productId, newStock)
+                        } else {
+                        }
+                    } catch (e: Exception) {
+                    }
+                }
+            }
             
             // Update order status in database
             val updatedOrder = orderRepository.updateStatus(

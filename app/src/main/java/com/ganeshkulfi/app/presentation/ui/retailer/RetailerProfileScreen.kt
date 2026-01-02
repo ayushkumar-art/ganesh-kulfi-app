@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +36,9 @@ fun RetailerProfileScreen(
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val orders by retailerViewModel.myOrders.collectAsState()
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     
     // Calculate stats
     val totalOrders = orders.size
@@ -67,7 +71,8 @@ fun RetailerProfileScreen(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -237,14 +242,22 @@ fun RetailerProfileScreen(
                     icon = Icons.Default.Help,
                     title = "Help Center",
                     subtitle = "Get help with your orders",
-                    onClick = { /* TODO */ }
+                    onClick = { 
+                        scope.launch { 
+                            snackbarHostState.showSnackbar("Help Center coming soon!") 
+                        }
+                    }
                 )
                 
                 MenuCard(
                     icon = Icons.Default.Info,
                     title = "About",
                     subtitle = "Learn more about Ganesh Kulfi",
-                    onClick = { /* TODO */ }
+                    onClick = { 
+                        scope.launch { 
+                            snackbarHostState.showSnackbar("About section coming soon!") 
+                        }
+                    }
                 )
                 
                 Spacer(Modifier.height(32.dp))

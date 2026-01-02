@@ -42,28 +42,26 @@ fun InventoryManagementScreen(
     val filterOptions = listOf("All", "In Stock", "Low Stock", "Out of Stock")
 
     // Filter items based on search query and filter
-    val filteredItems = remember(inventoryItems, searchQuery, selectedFilter) {
-        var filtered = inventoryItems
-        
-        // Apply search
-        if (searchQuery.isBlank()) {
-            filtered = inventoryItems
-        } else {
-            filtered = inventoryItems.filter { item ->
-                item.flavorName.contains(searchQuery, ignoreCase = true) ||
-                item.flavorId.contains(searchQuery, ignoreCase = true)
+    val filteredItems by remember {
+        derivedStateOf {
+            var filtered = inventoryItems
+            
+            // Apply search
+            if (searchQuery.isNotBlank()) {
+                filtered = inventoryItems.filter { item ->
+                    item.flavorName.contains(searchQuery, ignoreCase = true) ||
+                    item.flavorId.contains(searchQuery, ignoreCase = true)
+                }
+            }
+            
+            // Apply stock filter
+            when (selectedFilter) {
+                "Low Stock" -> filtered.filter { it.availableStock > 0 && it.availableStock <= 10 }
+                "Out of Stock" -> filtered.filter { it.availableStock == 0 }
+                "In Stock" -> filtered.filter { it.availableStock > 10 }
+                else -> filtered
             }
         }
-        
-        // Apply stock filter
-        filtered = when (selectedFilter) {
-            "Low Stock" -> filtered.filter { it.availableStock > 0 && it.availableStock <= 10 }
-            "Out of Stock" -> filtered.filter { it.availableStock == 0 }
-            "In Stock" -> filtered.filter { it.availableStock > 10 }
-            else -> filtered
-        }
-        
-        filtered
     }
 
     Scaffold(

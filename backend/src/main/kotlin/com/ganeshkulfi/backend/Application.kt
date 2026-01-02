@@ -79,7 +79,7 @@ fun Application.module() {
     val statusHistoryRepository = StatusHistoryRepository()
     val orderHistoryService = OrderHistoryService(orderRepository, statusHistoryRepository)
     val orderManagementService = OrderManagementService(orderRepository, statusHistoryRepository)
-    val orderService = OrderService(orderRepository, inventoryService, pricingService)
+    val orderService = OrderService(orderRepository, inventoryService, pricingService, productRepository)
     
     // Day 11: Order Timeline and Simple Notifications (No Firebase)
     val notificationService = NotificationService()
@@ -109,7 +109,7 @@ fun Application.module() {
         factoryRoutes(productService, inventoryService)
         adminAnalyticsRoutes(analyticsService)
         adminPriceOverrideRoutes(priceOverrideService) // Day 9
-        factoryOrderStatusRoutes(orderService, orderRepository, orderTimelineRepository, userRepository, notificationService) // Day 11: Order Status with Logging
+        factoryOrderStatusRoutes(orderService, orderRepository, orderTimelineRepository, userRepository, notificationService, productRepository) // Day 11: Order Status with Logging + Auto Stock Reduction
         orderPollingRoutes(orderRepository, orderTimelineRepository) // Day 11: Order polling for updates
         analyticsRoutes(analyticsService) // Day 12: Enhanced Analytics Dashboard
     }

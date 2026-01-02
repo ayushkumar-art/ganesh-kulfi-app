@@ -161,7 +161,7 @@ UI Auto-Recompose
 
 ## 📱 Demo Flow
 
-1. Login as admin (`admin@ganeshkulfi.com` / `admin123`)
+1. Login as admin (`admin@ganeshkulfi.com` / `Admin1234`)
 2. View dashboard with live metrics
 3. Navigate to Inventory - see 13 flavors with stock
 4. Navigate to Retailers - see Kumar & Sharma shops
