@@ -228,40 +228,55 @@ fun Route.healthRoutes() {
     
     route("/api") {
         /**
-         * GET /api/health
-         * Simple health check endpoint
+         * GET/HEAD /api/health
+         * Simple health check endpoint (supports both GET and HEAD for monitoring)
          */
-        get("/health") {
-            try {
-                // Test database connection
-                val dbStatus = transaction {
-                    // Simple query to verify DB connection
-                    val result = exec("SELECT 1") { rs ->
-                        rs.next()
-                        rs.getInt(1)
+        route("/health") {
+            get {
+                try {
+                    // Test database connection
+                    val dbStatus = transaction {
+                        // Simple query to verify DB connection
+                        val result = exec("SELECT 1") { rs ->
+                            rs.next()
+                            rs.getInt(1)
+                        }
+                        if (result == 1) "connected" else "error"
                     }
-                    if (result == 1) "connected" else "error"
+                    
+                    call.respond(
+                        HttpStatusCode.OK,
+                        HealthResponse(
+                            status = "healthy",
+                            message = "Ganesh Kulfi Backend is running!",
+                            timestamp = System.currentTimeMillis(),
+                            database = dbStatus ?: "error"
+                        )
+                    )
+                } catch (e: Exception) {
+                    call.respond(
+                        HttpStatusCode.ServiceUnavailable,
+                        HealthResponse(
+                            status = "unhealthy",
+                            message = "Database connection failed: ${e.message}",
+                            timestamp = System.currentTimeMillis(),
+                            database = "disconnected"
+                        )
+                    )
                 }
-                
-                call.respond(
-                    HttpStatusCode.OK,
-                    HealthResponse(
-                        status = "healthy",
-                        message = "Ganesh Kulfi Backend is running!",
-                        timestamp = System.currentTimeMillis(),
-                        database = dbStatus ?: "error"
-                    )
-                )
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.ServiceUnavailable,
-                    HealthResponse(
-                        status = "unhealthy",
-                        message = "Database connection failed: ${e.message}",
-                        timestamp = System.currentTimeMillis(),
-                        database = "disconnected"
-                    )
-                )
+            }
+            
+            // HEAD method support for UptimeRobot free tier
+            head {
+                try {
+                    // Quick DB check
+                    transaction {
+                        exec("SELECT 1") { rs -> rs.next() }
+                    }
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.ServiceUnavailable)
+                }
             }
         }
         
