@@ -13,63 +13,97 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Saffron,
+    // Primary - Creamy Orange (Kulfi theme)
+    primary = KulfiOrange,
     onPrimary = Color.White,
-    primaryContainer = SaffronLight,
-    onPrimaryContainer = DeepBrownDark,
+    primaryContainer = KulfiOrangeContainer,
+    onPrimaryContainer = DarkGray,
     
-    secondary = DeepBrown,
+    // Secondary - Cool Mint
+    secondary = KulfiMint,
     onSecondary = Color.White,
-    secondaryContainer = DeepBrownLight,
-    onSecondaryContainer = Color.White,
+    secondaryContainer = KulfiMintContainer,
+    onSecondaryContainer = DarkGray,
     
-    tertiary = DeepBrownLight,
+    // Tertiary - Strawberry Pink
+    tertiary = KulfiPink,
     onTertiary = Color.White,
+    tertiaryContainer = KulfiPinkContainer,
+    onTertiaryContainer = DarkGray,
     
-    background = CreamLight,
+    // Background & Surface
+    background = CreamBackground,
     onBackground = DarkGray,
-    
-    surface = Color.White,
+    surface = SurfaceWhite,
     onSurface = DarkGray,
-    surfaceVariant = LightGray,
+    surfaceVariant = SurfaceVariant,
     onSurfaceVariant = NeutralGray,
+    surfaceTint = KulfiOrangeLight,
     
+    // Error colors
     error = Error,
     onError = Color.White,
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002),
+    errorContainer = ErrorContainer,
+    onErrorContainer = DarkGray,
     
-    outline = NeutralGray,
-    outlineVariant = LightGray
+    // Outline
+    outline = MediumGray,
+    outlineVariant = LightGray,
+    
+    // Inverse colors
+    inverseSurface = DarkGray,
+    inverseOnSurface = CreamLight,
+    inversePrimary = KulfiOrangeLight,
+    
+    // Scrim
+    scrim = Color.Black.copy(alpha = 0.32f)
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = SaffronDark,
-    onPrimary = Color.White,
-    primaryContainer = Saffron,
-    onPrimaryContainer = DarkGray,
+    // Primary
+    primary = KulfiOrangeLight,
+    onPrimary = DarkGray,
+    primaryContainer = KulfiOrangeDark,
+    onPrimaryContainer = CreamLight,
     
-    secondary = DeepBrownLight,
-    onSecondary = Color.White,
-    secondaryContainer = DeepBrown,
-    onSecondaryContainer = Color.White,
+    // Secondary
+    secondary = KulfiMintLight,
+    onSecondary = DarkGray,
+    secondaryContainer = KulfiMintDark,
+    onSecondaryContainer = CreamLight,
     
-    tertiary = DeepBrown,
-    onTertiary = Color.White,
+    // Tertiary
+    tertiary = KulfiPinkLight,
+    onTertiary = DarkGray,
+    tertiaryContainer = KulfiPinkDark,
+    onTertiaryContainer = CreamLight,
     
-    background = DarkGray,
+    // Background & Surface
+    background = Color(0xFF1A1A1A),
     onBackground = CreamLight,
-    
     surface = Color(0xFF1C1B1F),
     onSurface = CreamLight,
-    surfaceVariant = Color(0xFF49454F),
+    surfaceVariant = Color(0xFF2B2B2B),
     onSurfaceVariant = Color(0xFFCAC4D0),
+    surfaceTint = KulfiOrange,
     
-    error = Error,
-    onError = Color.White,
+    // Error
+    error = ErrorLight,
+    onError = DarkGray,
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = ErrorContainer,
     
+    // Outline
     outline = Color(0xFF938F99),
-    outlineVariant = Color(0xFF49454F)
+    outlineVariant = Color(0xFF49454F),
+    
+    // Inverse
+    inverseSurface = CreamLight,
+    inverseOnSurface = DarkGray,
+    inversePrimary = KulfiOrange,
+    
+    // Scrim
+    scrim = Color.Black.copy(alpha = 0.5f)
 )
 
 @Composable
