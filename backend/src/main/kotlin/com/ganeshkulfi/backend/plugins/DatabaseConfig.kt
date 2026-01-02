@@ -54,8 +54,10 @@ object DatabaseConfig {
         // Configure HikariCP connection pool
         val dataSource = createDataSource(jdbcUrl, user, password, maxPoolSize, driverClass)
         
-        // Run Flyway migrations - DISABLED (migrations already applied)
-        // runMigrations(dataSource)
+        // Run Flyway migrations
+        environment.log.info("🔄 Running Flyway migrations...")
+        runMigrations(dataSource)
+        environment.log.info("✅ Flyway migrations completed")
         
         // Connect Exposed ORM
         Database.connect(dataSource)
