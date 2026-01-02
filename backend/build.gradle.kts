@@ -17,10 +17,10 @@ plugins {
 group = "com.ganeshkulfi"
 version = "0.0.10-SNAPSHOT"
 
-// Set Java compatibility to 21 (latest Kotlin supports)
+// Set Java compatibility to 17 (for Render deployment)
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 application {
@@ -87,9 +87,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
-// Configure Kotlin to use Java 21 bytecode (compatible with Java 24 runtime)
+// Configure Kotlin to use Java 17 bytecode (compatible with Docker runtime)
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "21"
+        jvmTarget = "17"
     }
 }
