@@ -15,7 +15,7 @@ import java.time.Instant
  */
 
 object PriceOverrides : Table("price_override") {
-    val id = integer("id").autoIncrement()
+    val id = uuid("id").autoGenerate()
     val productId = char("product_id", 36)  // Foreign key to Products.id
     val tier = customEnumeration(
         "retailer_tier",  // Database column name
