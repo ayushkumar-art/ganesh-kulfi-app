@@ -19,16 +19,36 @@ object DatabaseConfig {
     fun init(environment: ApplicationEnvironment) {
         val config = environment.config
         
-        // Read database config from application.conf
-        val host = config.property("database.host").getString()
-        val port = config.property("database.port").getString()
-        val dbName = config.property("database.name").getString()
-        val user = config.property("database.user").getString()
-        val password = config.property("database.password").getString()
-        val maxPoolSize = config.property("database.maxPoolSize").getString().toInt()
+        // Parse DATABASE_URL from Render or use application.conf
+        val databaseUrl = System.getenv("DATABASE_URL")
+        val (jdbcUrl, user, password) = if (databaseUrl != null && databaseUrl.startsWith("postgres")) {
+            // Parse Render format: postgresql://user:password@host:port/database
+            val uri = java.net.URI(databaseUrl)
+            val host = uri.host ?: throw IllegalArgumentException("Host is null in DATABASE_URL")
+            val port = if (uri.port > 0) uri.port else 5432
+            val path = uri.path ?: throw IllegalArgumentException("Path is null in DATABASE_URL")
+            val userInfo = uri.userInfo?.split(":") ?: throw IllegalArgumentException("UserInfo is null in DATABASE_URL")
+            
+            val url = "jdbc:postgresql://$host:$port$path"
+            val dbUser = userInfo.getOrNull(0) ?: throw IllegalArgumentException("Username not found in DATABASE_URL")
+            val dbPass = userInfo.getOrNull(1) ?: throw IllegalArgumentException("Password not found in DATABASE_URL")
+            
+            environment.log.info("✅ Parsed DATABASE_URL for migrations")
+            Triple(url, dbUser, dbPass)
+        } else {
+            // Read database config from application.conf (local development)
+            val host = config.property("database.host").getString()
+            val port = config.property("database.port").getString()
+            val dbName = config.property("database.name").getString()
+            val dbUser = config.property("database.user").getString()
+            val dbPass = config.property("database.password").getString()
+            
+            val url = "jdbc:postgresql://$host:$port/$dbName"
+            environment.log.info("📝 Using application.conf for database config")
+            Triple(url, dbUser, dbPass)
+        }
         
-        // PostgreSQL connection string
-        val jdbcUrl = "jdbc:postgresql://$host:$port/$dbName"
+        val maxPoolSize = config.propertyOrNull("database.maxPoolSize")?.getString()?.toInt() ?: 10
         val driverClass = "org.postgresql.Driver"
         
         // Configure HikariCP connection pool
