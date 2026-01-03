@@ -454,7 +454,15 @@ class AuthRepository @Inject constructor(
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
-            Result.failure(Exception("Network error: ${e.message}"))
+            e.printStackTrace() // Print full stack trace for debugging
+            val errorMsg = when (e) {
+                is java.net.UnknownHostException -> "Cannot connect to server. Check internet connection."
+                is java.net.SocketTimeoutException -> "Connection timeout. Server may be slow or unavailable."
+                is javax.net.ssl.SSLException -> "SSL/Certificate error: ${e.message}"
+                is java.io.IOException -> "Network error: ${e.message}"
+                else -> "Network error: ${e.javaClass.simpleName} - ${e.message}"
+            }
+            Result.failure(Exception(errorMsg))
         }
     }
 
@@ -472,9 +480,10 @@ class AuthRepository @Inject constructor(
             remove(KEY_RETAILER_ID)
             remove(KEY_SHOP_NAME)
             remove(KEY_PRICING_TIER)
-            remove(KEY_AUTH_TOKEN)  // Also remove auth token on sign out
-            // Keep stored credentials for re-login (unless guest)
-            apply()
+            remove(KEY_AUTH_TOKEN)
+            remove(KEY_STORED_EMAIL)  // Clear stored email to prevent auto-login
+            remove(KEY_PASSWORD)      // Clear stored password
+            commit()  // Use commit() instead of apply() for immediate persistence
         }
         _currentUser.value = null
     }
