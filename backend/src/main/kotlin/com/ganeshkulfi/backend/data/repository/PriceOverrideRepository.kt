@@ -63,8 +63,9 @@ class PriceOverrideRepository {
     /**
      * Get price override by ID
      */
-    fun findById(id: Int): PriceOverride? = transaction {
-        PriceOverrides.select { PriceOverrides.id eq id }
+    fun findById(id: String): PriceOverride? = transaction {
+        val uuid = java.util.UUID.fromString(id)
+        PriceOverrides.select { PriceOverrides.id eq uuid }
             .singleOrNull()?.toPriceOverride()
     }
 
@@ -95,8 +96,9 @@ class PriceOverrideRepository {
     /**
      * Update price override
      */
-    fun update(id: Int, overridePrice: Double, active: Boolean): Boolean = transaction {
-        PriceOverrides.update({ PriceOverrides.id eq id }) {
+    fun update(id: String, overridePrice: Double, active: Boolean): Boolean = transaction {
+        val uuid = java.util.UUID.fromString(id)
+        PriceOverrides.update({ PriceOverrides.id eq uuid }) {
             it[PriceOverrides.overridePrice] = overridePrice.toBigDecimal()
             it[PriceOverrides.active] = active
             it[updatedAt] = Instant.now()
@@ -106,8 +108,9 @@ class PriceOverrideRepository {
     /**
      * Delete price override (soft delete by setting active = false)
      */
-    fun softDelete(id: Int): Boolean = transaction {
-        PriceOverrides.update({ PriceOverrides.id eq id }) {
+    fun softDelete(id: String): Boolean = transaction {
+        val uuid = java.util.UUID.fromString(id)
+        PriceOverrides.update({ PriceOverrides.id eq uuid }) {
             it[active] = false
             it[updatedAt] = Instant.now()
         } > 0
@@ -116,8 +119,9 @@ class PriceOverrideRepository {
     /**
      * Delete price override (hard delete)
      */
-    fun delete(id: Int): Boolean = transaction {
-        PriceOverrides.deleteWhere { PriceOverrides.id eq id } > 0
+    fun delete(id: String): Boolean = transaction {
+        val uuid = java.util.UUID.fromString(id)
+        PriceOverrides.deleteWhere { PriceOverrides.id eq uuid } > 0
     }
 
     /**
@@ -128,7 +132,7 @@ class PriceOverrideRepository {
             .selectAll()
             .map { row ->
                 val override = PriceOverride(
-                    id = row[PriceOverrides.id],
+                    id = row[PriceOverrides.id].toString(),  // Convert UUID to String
                     productId = row[PriceOverrides.productId],
                     tier = row[PriceOverrides.tier].name,
                     overridePrice = row[PriceOverrides.overridePrice].toDouble(),

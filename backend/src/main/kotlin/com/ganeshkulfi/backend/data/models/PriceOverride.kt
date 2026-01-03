@@ -33,7 +33,7 @@ object PriceOverrides : Table("price_override") {
 
 @Serializable
 data class PriceOverride(
-    val id: Int,
+    val id: String,  // UUID as string for JSON serialization
     val productId: String,  // UUID string
     val tier: String,
     val overridePrice: Double,
@@ -43,7 +43,7 @@ data class PriceOverride(
 )
 
 fun ResultRow.toPriceOverride() = PriceOverride(
-    id = this[PriceOverrides.id],
+    id = this[PriceOverrides.id].toString(),  // Convert UUID to String
     productId = this[PriceOverrides.productId],
     tier = this[PriceOverrides.tier].name,
     overridePrice = this[PriceOverrides.overridePrice].toDouble(),

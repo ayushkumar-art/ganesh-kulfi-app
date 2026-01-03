@@ -61,7 +61,7 @@ class PriceOverrideService(
     /**
      * Get price override by ID (admin only)
      */
-    fun getPriceOverride(id: Int): PriceOverrideResponse {
+    fun getPriceOverride(id: String): PriceOverrideResponse {
         val override = priceOverrideRepository.findById(id)
             ?: throw IllegalArgumentException("Price override not found: $id")
 
@@ -136,7 +136,7 @@ class PriceOverrideService(
     /**
      * Update price override (admin only)
      */
-    fun updatePriceOverride(id: Int, request: UpdatePriceOverrideRequest): PriceOverrideResponse {
+    fun updatePriceOverride(id: String, request: UpdatePriceOverrideRequest): PriceOverrideResponse {
         // Validate override exists
         val existing = priceOverrideRepository.findById(id)
             ?: throw IllegalArgumentException("Price override not found: $id")
@@ -164,7 +164,7 @@ class PriceOverrideService(
     /**
      * Delete price override (admin only)
      */
-    fun deletePriceOverride(id: Int): Boolean {
+    fun deletePriceOverride(id: String): Boolean {
         val existing = priceOverrideRepository.findById(id)
             ?: throw IllegalArgumentException("Price override not found: $id")
 
@@ -174,7 +174,7 @@ class PriceOverrideService(
     /**
      * Soft delete price override (admin only)
      */
-    fun deactivatePriceOverride(id: Int): Boolean {
+    fun deactivatePriceOverride(id: String): Boolean {
         val existing = priceOverrideRepository.findById(id)
             ?: throw IllegalArgumentException("Price override not found: $id")
 

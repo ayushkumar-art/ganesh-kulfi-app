@@ -70,7 +70,7 @@ fun Route.adminPriceOverrideRoutes(priceOverrideService: PriceOverrideService) {
                     return@get call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Admin access required"))
                 }
 
-                val id = call.parameters["id"]?.toIntOrNull()
+                val id = call.parameters["id"]
                     ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid ID"))
 
                 try {
@@ -114,7 +114,7 @@ fun Route.adminPriceOverrideRoutes(priceOverrideService: PriceOverrideService) {
                     return@put call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Admin access required"))
                 }
 
-                val id = call.parameters["id"]?.toIntOrNull()
+                val id = call.parameters["id"]
                     ?: return@put call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid ID"))
 
                 val request = call.receive<UpdatePriceOverrideRequest>()
@@ -138,7 +138,7 @@ fun Route.adminPriceOverrideRoutes(priceOverrideService: PriceOverrideService) {
                     return@delete call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Admin access required"))
                 }
 
-                val id = call.parameters["id"]?.toIntOrNull()
+                val id = call.parameters["id"]
                     ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid ID"))
 
                 try {
@@ -164,7 +164,7 @@ fun Route.adminPriceOverrideRoutes(priceOverrideService: PriceOverrideService) {
                     return@patch call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Admin access required"))
                 }
 
-                val id = call.parameters["id"]?.toIntOrNull()
+                val id = call.parameters["id"]
                     ?: return@patch call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid ID"))
 
                 try {

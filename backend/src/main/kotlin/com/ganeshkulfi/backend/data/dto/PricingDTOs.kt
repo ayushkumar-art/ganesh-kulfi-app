@@ -25,7 +25,7 @@ data class UpdatePriceOverrideRequest(
 
 @Serializable
 data class PriceOverrideResponse(
-    val id: Int,
+    val id: String,  // UUID as string
     val productId: String,  // UUID string
     val productName: String, // For admin convenience
     val tier: String,
