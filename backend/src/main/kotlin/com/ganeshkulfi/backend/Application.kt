@@ -134,7 +134,7 @@ fun Application.module() {
     log.info("🔄 Order polling: http://localhost:8080/api/retailer/orders/updates")
 }
 
-fun printBanner() {
+fun Application.printBanner() {
     environment.log.info("""
         
     ╔═══════════════════════════════════════════════╗
