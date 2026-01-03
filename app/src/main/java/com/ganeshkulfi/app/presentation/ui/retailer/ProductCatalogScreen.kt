@@ -180,7 +180,9 @@ fun ProductCatalogScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(padding),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 // Welcome Banner
                 item {
@@ -192,7 +194,7 @@ fun ProductCatalogScreen(
                     SearchBar(
                         query = searchQuery,
                         onQueryChange = { searchQuery = it },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
                 

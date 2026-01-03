@@ -110,22 +110,9 @@ val GradientWarmWelcome = Brush.verticalGradient(
     colors = listOf(KulfiOrangeLight, KulfiOrangeContainer)
 )
 
-// ==================== OLD COLORS (Deprecated - for compatibility) ====================
-
-@Deprecated("Use KulfiOrange instead", ReplaceWith("KulfiOrange"))
-val Saffron = KulfiOrange
-
-@Deprecated("Use KulfiOrangeLight instead", ReplaceWith("KulfiOrangeLight"))
-val SaffronLight = KulfiOrangeLight
-
-@Deprecated("Use KulfiOrangeDark instead", ReplaceWith("KulfiOrangeDark"))
-val SaffronDark = KulfiOrangeDark
-
-@Deprecated("Use CreamBackground instead", ReplaceWith("CreamBackground"))
-val CreamLightOld = CreamBackground
-
-@Deprecated("Use CreamDark instead", ReplaceWith("CreamDark"))
-val CreamDarkOld = CreamDark
+// ==================== ADDITIONAL COLORS ====================
+// Note: Deprecated colors removed - use KulfiOrange, KulfiOrangeLight, 
+// KulfiOrangeDark, CreamBackground, and CreamDark instead
 
 val DeepBrown = Color(0xFF8B4513)
 val DeepBrownLight = Color(0xFFA0522D)

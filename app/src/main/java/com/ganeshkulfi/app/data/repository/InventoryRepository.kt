@@ -7,6 +7,7 @@ import com.ganeshkulfi.app.data.remote.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,9 +33,18 @@ class InventoryRepository @Inject constructor(
         
         // Start auto-refresh every 30 seconds
         repositoryScope.launch {
+            var failureCount = 0
             while (isActive) {
-                fetchInventoryFromBackend()
-                delay(30_000) // Refresh every 30 seconds
+                try {
+                    fetchInventoryFromBackend()
+                    failureCount = 0 // Reset on success
+                    delay(30_000) // Refresh every 30 seconds
+                } catch (e: Exception) {
+                    failureCount++
+                    val backoffDelay = minOf(60_000L * failureCount, 300_000L) // Max 5 min
+                    android.util.Log.e("InventoryRepository", "Auto-refresh failed (attempt $failureCount), retrying in ${backoffDelay/1000}s", e)
+                    delay(backoffDelay)
+                }
             }
         }
     }
@@ -104,7 +114,7 @@ class InventoryRepository @Inject constructor(
             }
         } catch (e: Exception) {
             println("❌ Error fetching inventory: ${e.message}")
-            e.printStackTrace()
+            android.util.Log.e("InventoryRepository", "Error fetching inventory from backend", e)
         }
     }
     
@@ -135,20 +145,39 @@ class InventoryRepository @Inject constructor(
 
     suspend fun updateStock(flavorId: String, quantity: Int): Result<Unit> {
         return try {
-            _inventory.value = _inventory.value.map { item ->
-                if (item.flavorId == flavorId) {
-                    item.copy(
-                        totalStock = item.totalStock + quantity,
-                        availableStock = item.availableStock + quantity,
-                        lastRestockedAt = System.currentTimeMillis(),
-                        updatedAt = System.currentTimeMillis()
-                    )
-                } else {
-                    item
-                }
+            val token = sharedPreferences.getString("auth_token", null)
+            if (token.isNullOrEmpty()) {
+                println("❌ No auth token for stock update")
+                return Result.failure(Exception("Not authenticated"))
             }
-            Result.success(Unit)
+            
+            // Call backend API to update stock
+            val updateStockDto = mapOf("quantity" to quantity)
+            val response = apiService.updateProductStock("Bearer $token", flavorId, updateStockDto)
+            
+            if (response.isSuccessful) {
+                // Update local state after successful backend update
+                _inventory.value = _inventory.value.map { item ->
+                    if (item.flavorId == flavorId) {
+                        item.copy(
+                            totalStock = item.totalStock + quantity,
+                            availableStock = item.availableStock + quantity,
+                            lastRestockedAt = System.currentTimeMillis(),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    } else {
+                        item
+                    }
+                }
+                println("✅ Stock updated successfully for $flavorId: +$quantity units")
+                Result.success(Unit)
+            } else {
+                val errorMsg = response.body()?.get("message")?.toString() ?: "Failed to update stock"
+                println("❌ Stock update failed: $errorMsg")
+                Result.failure(Exception(errorMsg))
+            }
         } catch (e: Exception) {
+            println("❌ Error updating stock: ${e.message}")
             Result.failure(e)
         }
     }
@@ -237,5 +266,13 @@ class InventoryRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+    
+    /**
+     * Cancel background coroutines when repository is no longer needed
+     * Call this to prevent memory leaks
+     */
+    fun close() {
+        repositoryScope.cancel()
     }
 }

@@ -16,10 +16,68 @@ class UserService(
     private val jwtService: JWTService
 ) {
     
+    companion object {
+        // Input validation patterns
+        private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+        private val PHONE_REGEX = Regex("^[0-9]{10}$")
+        private val NAME_REGEX = Regex("^[a-zA-Z\\s]{2,100}$")
+        
+        fun validateEmail(email: String): ValidationResult {
+            return when {
+                email.isBlank() -> ValidationResult(false, "Email is required")
+                !EMAIL_REGEX.matches(email) -> ValidationResult(false, "Invalid email format")
+                email.length > 255 -> ValidationResult(false, "Email too long")
+                else -> ValidationResult(true, "Valid")
+            }
+        }
+        
+        fun validatePhone(phone: String?): ValidationResult {
+            if (phone.isNullOrBlank()) return ValidationResult(true, "Valid") // Optional field
+            return when {
+                !PHONE_REGEX.matches(phone) -> ValidationResult(false, "Phone must be 10 digits")
+                else -> ValidationResult(true, "Valid")
+            }
+        }
+        
+        fun validateName(name: String): ValidationResult {
+            return when {
+                name.isBlank() -> ValidationResult(false, "Name is required")
+                !NAME_REGEX.matches(name) -> ValidationResult(false, "Name must be 2-100 letters only")
+                else -> ValidationResult(true, "Valid")
+            }
+        }
+        
+        fun validatePrice(price: Double): ValidationResult {
+            return when {
+                price < 0 -> ValidationResult(false, "Price cannot be negative")
+                price > 1000000 -> ValidationResult(false, "Price too high (max 1M)")
+                else -> ValidationResult(true, "Valid")
+            }
+        }
+    }
+    
     /**
      * Register a new user
      */
     fun register(request: RegisterRequest): Result<AuthResponse> {
+        // Validate email
+        val emailValidation = validateEmail(request.email)
+        if (!emailValidation.isValid) {
+            return Result.failure(IllegalArgumentException(emailValidation.message))
+        }
+        
+        // Validate name
+        val nameValidation = validateName(request.name)
+        if (!nameValidation.isValid) {
+            return Result.failure(IllegalArgumentException(nameValidation.message))
+        }
+        
+        // Validate phone if provided
+        val phoneValidation = validatePhone(request.phone)
+        if (!phoneValidation.isValid) {
+            return Result.failure(IllegalArgumentException(phoneValidation.message))
+        }
+        
         // Validate password strength
         val passwordValidation = passwordService.validatePasswordStrength(request.password)
         if (!passwordValidation.isValid) {

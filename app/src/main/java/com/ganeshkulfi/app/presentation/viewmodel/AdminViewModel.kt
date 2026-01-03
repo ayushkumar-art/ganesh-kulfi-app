@@ -248,7 +248,7 @@ class AdminViewModel @Inject constructor(
                     if (registerResult.isFailure) {
                         // If registration failed, log the error
                         val error = registerResult.exceptionOrNull()
-                        error?.printStackTrace()
+                        android.util.Log.e("AdminViewModel", "Retailer registration failed", error)
                     } else {
                         // Refresh retailers from backend to show the new retailer
                         retailerRepository.refreshRetailers()
@@ -256,11 +256,11 @@ class AdminViewModel @Inject constructor(
                 } else {
                     // Failed to create retailer
                     val error = createdResult.exceptionOrNull()
-                    error?.printStackTrace()
+                    android.util.Log.e("AdminViewModel", "Retailer creation failed", error)
                 }
             } catch (e: Exception) {
                 // Handle error
-                e.printStackTrace()
+                android.util.Log.e("AdminViewModel", "Error creating retailer account", e)
             }
         }
     }
@@ -418,7 +418,7 @@ class AdminViewModel @Inject constructor(
                     retailerRepository.refreshRetailers()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("AdminViewModel", "Failed to update user pricing tier (updateUserPricingTier)", e)
             }
         }
     }
@@ -437,7 +437,7 @@ class AdminViewModel @Inject constructor(
                     retailerRepository.refreshRetailers()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("AdminViewModel", "Failed to delete retailer via API", e)
             }
         }
     }
@@ -482,8 +482,8 @@ class AdminViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                android.util.Log.e("AdminViewModel", "Failed to fetch admin orders", e)
                 _ordersError.value = e.message ?: "Unknown error occurred"
-                e.printStackTrace()
             } finally {
                 _ordersLoading.value = false
             }
@@ -517,7 +517,7 @@ class AdminViewModel @Inject constructor(
                     _ordersError.value = errorMsg
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("AdminViewModel", "Failed to update order status", e)
                 _ordersError.value = e.message ?: "Failed to update order"
             } finally {
                 _ordersLoading.value = false
@@ -545,11 +545,22 @@ class AdminViewModel @Inject constructor(
                     _ordersError.value = errorMsg
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("AdminViewModel", "Failed to cancel order", e)
                 _ordersError.value = e.message ?: "Failed to cancel order"
             } finally {
                 _ordersLoading.value = false
             }
+        }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        // Cancel repository background tasks to prevent memory leaks
+        try {
+            inventoryRepository.close()
+            retailerRepository.close()
+        } catch (e: Exception) {
+            android.util.Log.e("AdminViewModel", "Error closing repositories", e)
         }
     }
 }

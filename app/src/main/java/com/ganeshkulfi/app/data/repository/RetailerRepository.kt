@@ -8,6 +8,7 @@ import com.ganeshkulfi.app.data.remote.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ private fun parseIsoTimestamp(isoString: String?): Long {
     return try {
         Instant.parse(isoString).toEpochMilli()
     } catch (e: DateTimeParseException) {
+        android.util.Log.w("RetailerRepository", "Failed to parse timestamp: $isoString", e)
         0L
     }
 }
@@ -48,9 +50,18 @@ class RetailerRepository @Inject constructor(
     init {
         // Start auto-refresh every 30 seconds
         repositoryScope.launch {
+            var failureCount = 0
             while (isActive) {
-                fetchRetailersFromBackend()
-                delay(30_000) // Refresh every 30 seconds
+                try {
+                    fetchRetailersFromBackend()
+                    failureCount = 0 // Reset on success
+                    delay(30_000) // Refresh every 30 seconds
+                } catch (e: Exception) {
+                    failureCount++
+                    val backoffDelay = minOf(60_000L * failureCount, 300_000L) // Max 5 min
+                    android.util.Log.e("RetailerRepository", "Auto-refresh failed (attempt $failureCount), retrying in ${backoffDelay/1000}s", e)
+                    delay(backoffDelay)
+                }
             }
         }
     }
@@ -108,8 +119,8 @@ class RetailerRepository @Inject constructor(
                 // No auth token available
             }
         } catch (e: Exception) {
+            android.util.Log.e("RetailerRepository", "Failed to fetch retailers", e)
             _error.value = e.message
-            e.printStackTrace()
         } finally {
             _isLoading.value = false
         }
@@ -231,5 +242,13 @@ class RetailerRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+    
+    /**
+     * Cancel background coroutines when repository is no longer needed
+     * Call this to prevent memory leaks
+     */
+    fun close() {
+        repositoryScope.cancel()
     }
 }

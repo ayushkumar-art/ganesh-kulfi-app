@@ -2,8 +2,14 @@ package com.ganeshkulfi.backend.services
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 
-/**
- * Password Service
+/** * Validation result for input validation
+ */
+data class ValidationResult(
+    val isValid: Boolean,
+    val message: String
+)
+
+/** * Password Service
  * Handles password hashing and verification using bcrypt
  */
 class PasswordService {

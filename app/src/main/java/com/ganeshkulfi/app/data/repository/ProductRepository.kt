@@ -63,7 +63,7 @@ class ProductRepository @Inject constructor(
                 }
             } catch (e: Exception) {
                 // Keep default products on error
-                e.printStackTrace()
+                android.util.Log.e("ProductRepository", "Failed to fetch products from backend", e)
                 Result.failure(e)
             }
         }

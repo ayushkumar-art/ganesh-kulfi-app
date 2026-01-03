@@ -87,6 +87,14 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: CancelOrderRequest
     ): Response<ApiResponse<Order>>
+    
+    // Inventory Management
+    @PATCH("/api/products/{id}/stock")
+    suspend fun updateProductStock(
+        @Header("Authorization") token: String,
+        @Path("id") productId: String,
+        @Body request: Map<String, Int>
+    ): Response<Map<String, Any>>
 }
 
 // DTOs

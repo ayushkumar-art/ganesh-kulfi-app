@@ -2,12 +2,14 @@ package com.ganeshkulfi.backend.routes
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.Table
+import com.ganeshkulfi.backend.utils.requireAdmin
 
 /**
  * Health Check Routes

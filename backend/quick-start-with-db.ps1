@@ -1,9 +1,14 @@
 # Quick Start with Database Credentials
 # Uses ganeshkulfi_user/kulfi@123
+# ⚠️  SECURITY WARNING: FOR LOCAL TESTING ONLY!
+# ⚠️  Change password 'kulfi@123' immediately for any deployment!
 
 Write-Host "🚀 Starting Ganesh Kulfi Backend" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "⚠️  WARNING: Using weak default password!" -ForegroundColor Red
+Write-Host "⚠️  Password: kulfi@123 - CHANGE FOR PRODUCTION!" -ForegroundColor Red
+Write-Host "" -ForegroundColor Red
 
 # Configuration
 $dbHost = "localhost"

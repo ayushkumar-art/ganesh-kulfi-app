@@ -111,7 +111,7 @@ class OrderRepository @Inject constructor(
                 }
             } catch (e: Exception) {
                 println("❌ Exception fetching orders: ${e.message}")
-                e.printStackTrace()
+                android.util.Log.e("OrderRepository", "Exception fetching orders", e)
                 Result.failure(e)
             }
         }
@@ -183,7 +183,7 @@ class OrderRepository @Inject constructor(
                 }
             } catch (e: Exception) {
                 println("❌ Exception creating order: ${e.message}")
-                e.printStackTrace()
+                android.util.Log.e("OrderRepository", "Exception creating order", e)
                 Result.failure(e)
             }
         }

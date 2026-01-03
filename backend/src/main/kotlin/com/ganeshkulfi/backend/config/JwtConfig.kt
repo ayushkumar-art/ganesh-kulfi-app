@@ -2,13 +2,15 @@ package com.ganeshkulfi.backend.config
 
 /**
  * JWT Configuration
- * Hardcoded for development (move to application.conf for production)
+ * ALL values must be provided via environment variables
+ * NEVER hardcode secrets in source code
  */
 object JwtConfig {
-    // JWT Settings
-    const val SECRET = "kulfi_secret_2025"  // ⚠️ Change in production!
-    const val ISSUER = "http://localhost:8080"
-    const val AUDIENCE = "kulfi-users"
+    // JWT Settings - Load from environment variables
+    val SECRET: String = System.getenv("JWT_SECRET") 
+        ?: throw IllegalStateException("JWT_SECRET environment variable must be set")
+    val ISSUER: String = System.getenv("JWT_ISSUER") ?: "ganeshkulfi"
+    val AUDIENCE: String = System.getenv("JWT_AUDIENCE") ?: "ganeshkulfi-app"
     const val REALM = "Ganesh Kulfi API"
     const val EXPIRATION_TIME = 604800000L  // 7 days in milliseconds
     

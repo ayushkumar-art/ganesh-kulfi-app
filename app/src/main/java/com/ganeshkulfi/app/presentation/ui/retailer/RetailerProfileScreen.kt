@@ -307,7 +307,7 @@ fun InfoCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .heightIn(min = 72.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
@@ -361,7 +361,7 @@ fun StatCard(
 ) {
     Card(
         modifier = modifier
-            .height(120.dp),
+            .heightIn(min = 120.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
@@ -410,7 +410,7 @@ fun MenuCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .heightIn(min = 72.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface

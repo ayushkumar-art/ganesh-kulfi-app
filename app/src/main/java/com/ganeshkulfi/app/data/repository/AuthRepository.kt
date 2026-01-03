@@ -30,6 +30,13 @@ class AuthRepository @Inject constructor(
 
     private fun loadCurrentUser() {
         try {
+            // Check if user explicitly logged out - if so, don't auto-login
+            val hasLoggedOut = sharedPreferences.getBoolean(KEY_HAS_LOGGED_OUT, false)
+            if (hasLoggedOut) {
+                _currentUser.value = null
+                return
+            }
+
             var userId = sharedPreferences.getString(KEY_USER_ID, null)
 
             if (userId == null) {
@@ -115,10 +122,14 @@ class AuthRepository @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            // Clear corrupted data and start fresh
+            // Clear corrupted data but preserve logout flag
+            val hasLoggedOut = sharedPreferences.getBoolean(KEY_HAS_LOGGED_OUT, false)
             with(sharedPreferences.edit()) {
                 clear()
-                apply()
+                if (hasLoggedOut) {
+                    putBoolean(KEY_HAS_LOGGED_OUT, true)  // Restore logout flag
+                }
+                commit()  // Use commit for immediate write
             }
             _currentUser.value = null
         }
@@ -333,7 +344,7 @@ class AuthRepository @Inject constructor(
                 Result.success(Unit)
             } catch (e: Exception) {
                 println("EXCEPTION: Registration failed - ${e.message}")
-                e.printStackTrace()
+                android.util.Log.e("AuthRepository", "Registration exception", e)
                 Result.failure(e)
             }
         }
@@ -447,6 +458,9 @@ class AuthRepository @Inject constructor(
                 }
                 println("════════════════════════════════════════════")
                 
+                // Clear logout flag on successful login
+                sharedPreferences.edit().putBoolean(KEY_HAS_LOGGED_OUT, false).commit()
+                
                 _currentUser.value = user
                 Result.success(user)
             } else {
@@ -454,7 +468,7 @@ class AuthRepository @Inject constructor(
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
-            e.printStackTrace() // Print full stack trace for debugging
+            android.util.Log.e("AuthRepository", "Sign-in failed", e)
             val errorMsg = when (e) {
                 is java.net.UnknownHostException -> "Cannot connect to server. Check internet connection."
                 is java.net.SocketTimeoutException -> "Connection timeout. Server may be slow or unavailable."
@@ -470,6 +484,13 @@ class AuthRepository @Inject constructor(
         // Sign out from Google (Uncomment when Firebase is ready)
         // googleSignInHelper.signOut()
         
+        // CRITICAL: Set logout flag FIRST before clearing, to ensure it persists
+        sharedPreferences.edit().putBoolean(KEY_HAS_LOGGED_OUT, true).commit()
+        
+        // Now clear the user in memory
+        _currentUser.value = null
+        
+        // Clear all other session data (logout flag already set above)
         with(sharedPreferences.edit()) {
             remove(KEY_USER_ID)
             remove(KEY_EMAIL)
@@ -481,11 +502,11 @@ class AuthRepository @Inject constructor(
             remove(KEY_SHOP_NAME)
             remove(KEY_PRICING_TIER)
             remove(KEY_AUTH_TOKEN)
-            remove(KEY_STORED_EMAIL)  // Clear stored email to prevent auto-login
-            remove(KEY_PASSWORD)      // Clear stored password
-            commit()  // Use commit() instead of apply() for immediate persistence
+            remove(KEY_STORED_EMAIL)
+            remove(KEY_PASSWORD)
+            // KEY_HAS_LOGGED_OUT is NOT removed - it stays set to true
+            commit()
         }
-        _currentUser.value = null
     }
     
     /* ============================================================
@@ -664,5 +685,6 @@ class AuthRepository @Inject constructor(
         private const val KEY_SHOP_NAME = "shop_name"
         private const val KEY_PRICING_TIER = "pricing_tier"
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_HAS_LOGGED_OUT = "has_logged_out"
     }
 }

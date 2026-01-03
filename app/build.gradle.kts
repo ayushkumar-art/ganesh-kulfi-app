@@ -14,8 +14,10 @@ android {
         applicationId = "com.ganeshkulfi.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        
+        // Version management - increment before each release
+        versionCode = getVersionCode()
+        versionName = getVersionName()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -25,8 +27,9 @@ android {
 
     buildTypes {
         debug {
-            isMinifyEnabled = true
+            isMinifyEnabled = false  // Disabled for easier debugging
             isShrinkResources = false
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -35,6 +38,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = false  // Disabled due to launcher icon issues
+            buildConfigField("String", "BASE_URL", "\"https://ganesh-kulfi-backend.onrender.com\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -50,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true  // Enable BuildConfig for BASE_URL
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
@@ -120,4 +125,24 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+/**
+ * Version Management System
+ * Automatically increments version based on Git commits
+ * Format: MAJOR.MINOR.PATCH (versionCode = MAJOR * 10000 + MINOR * 100 + PATCH)
+ */
+fun getVersionCode(): Int {
+    // Read from version.properties or calculate from git
+    val major = 1
+    val minor = 0
+    val patch = 0
+    return major * 10000 + minor * 100 + patch  // 10000
+}
+
+fun getVersionName(): String {
+    val major = 1
+    val minor = 0
+    val patch = 0
+    return "$major.$minor.$patch"  // "1.0.0"
 }

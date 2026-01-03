@@ -1,9 +1,14 @@
 # Quick Start - Uses postgres/postgres as default credentials
-# For testing only - change password for production!
+# ⚠️  SECURITY WARNING: FOR LOCAL TESTING ONLY!
+# ⚠️  NEVER use these credentials in production!
+# ⚠️  Change password immediately for any deployment!
 
 Write-Host "🚀 Quick Start - Ganesh Kulfi Backend" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "⚠️  WARNING: Using default credentials for testing!" -ForegroundColor Red
+Write-Host "⚠️  Database: postgres/postgres - CHANGE FOR PRODUCTION!" -ForegroundColor Red
+Write-Host "" -ForegroundColor Red
 
 # Default configuration for quick testing
 $dbHost = "localhost"

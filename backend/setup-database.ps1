@@ -1,9 +1,14 @@
 # Database Setup for Local Testing
 # Creates database and user for Ganesh Kulfi Backend
+# ⚠️  SECURITY WARNING: Uses default password 'kulfi@123'
+# ⚠️  Change this password immediately for any deployment!
 
 Write-Host "🗄️  Ganesh Kulfi - Database Setup" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "⚠️  WARNING: This script uses a weak default password!" -ForegroundColor Red
+Write-Host "⚠️  Password: kulfi@123 - For local testing only!" -ForegroundColor Red
+Write-Host "" -ForegroundColor Red
 
 Write-Host "This script will create:" -ForegroundColor Yellow
 Write-Host "   • Database: ganeshkulfi_db" -ForegroundColor Gray

@@ -135,7 +135,7 @@ fun Application.module() {
 }
 
 fun printBanner() {
-    println("""
+    environment.log.info("""
         
     ╔═══════════════════════════════════════════════╗
     ║                                               ║

@@ -1,9 +1,10 @@
 package com.ganeshkulfi.app.data.remote
 
+import com.ganeshkulfi.app.BuildConfig
+
 object ApiConfig {
-    // Production backend on Render.com
-    const val BASE_URL = "https://ganesh-kulfi-backend.onrender.com"
-    
-    // For local testing, uncomment this instead:
-    // const val BASE_URL = "http://10.242.116.68:8080"
+    // Automatically selects URL based on build variant
+    // Debug: Local emulator (10.0.2.2:8080)
+    // Release: Production on Render.com
+    val BASE_URL: String = BuildConfig.BASE_URL
 }
