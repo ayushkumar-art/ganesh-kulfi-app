@@ -97,3 +97,11 @@ Thumbs.db
 
 # Documentation that changes frequently
 BUILD_STATUS.md
+
+# Backup files
+*.bak
+*_backup.*
+*_OLD.*
+
+# Test scripts (organized in /scripts folder)
+test-*.ps1
