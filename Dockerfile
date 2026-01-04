@@ -18,8 +18,11 @@ COPY backend/src ./src
 RUN chmod +x gradlew && ./gradlew clean shadowJar --no-daemon
 
 # Stage 2: Runtime
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Copy the built JAR from build stage
 COPY --from=build /app/build/libs/*-all.jar app.jar
