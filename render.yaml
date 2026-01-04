@@ -5,8 +5,8 @@ services:
     runtime: docker
     plan: free
     branch: main
-    rootDir: ./backend
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
