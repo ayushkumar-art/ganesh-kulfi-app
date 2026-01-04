@@ -1,294 +1,502 @@
-# Kulfi Delight Android App
+# 🍨 Ganesh Kulfi Management System
 
-A native Android application for **Shri Ganesh Kulfi**, built with Kotlin and Jetpack Compose. This app provides a modern, user-friendly interface for browsing kulfi flavors, placing orders, and managing the business.
+A full-stack inventory and order management system for **Shri Ganesh Kulfi** - a kulfi ice cream business in Kopargaon, Maharashtra. Built with **Jetpack Compose** (Android) and **Ktor** (Backend).
 
-## 🎯 Features
+## ✨ Overview
 
-- **User Authentication**: Firebase Authentication with email/password
-- **Flavor Showcase**: Browse 14+ kulfi varieties with images and descriptions
-- **Multi-language Support**: English, Hindi, and Marathi
-- **Shopping Cart**: Add items and place orders
-- **Order Management**: Track order status and history
-- **Admin Dashboard**: Manage menu, inventory, and orders
-- **Offline Support**: Room database for caching
-- **Material Design 3**: Modern UI with custom saffron/cream theme
+Professional business management system supporting three user roles (Admin, Retailer, Factory) with complete inventory tracking, order management, and role-based access control. Features 13 authentic kulfi flavors with real-time stock management and secure JWT authentication.
+
+### Key Features
+
+- 🔐 **Secure Authentication**: JWT-based auth with BCrypt password hashing (work factor 12)
+- 👥 **Multi-Role System**: Admin, Retailer, Factory with role-based access control
+- 🍦 **13 Kulfi Flavors**: Malai, Mango, Kesar-Pista, Chocolate, Strawberry, Butterscotch, Kesar, Sitafal, Anjeer, Pista, Gulab-Jamun, Rajbhog, Kulfi
+- 📦 **Inventory Management**: Real-time stock tracking with editable quantities
+- 📱 **Order Processing**: Complete order lifecycle from creation to completion
+- 🔍 **Advanced Search**: Filter by flavor, status, retailer with instant results
+- 🎨 **Modern UI**: Material Design 3 with Jetpack Compose
+- 🌍 **Multi-language**: English, Hindi, Marathi support
+- 🔒 **Production Security**: B+ security rating, 23/27 issues resolved (85%)
 
 ## 🏗️ Architecture
 
-This app follows **Clean Architecture** principles with **MVVM** pattern:
+**3-Tier Architecture:**
+```
+Android App (Kotlin + Jetpack Compose)
+           ↓ Retrofit + OkHttp
+Ktor REST API (Kotlin)
+           ↓ Exposed ORM
+PostgreSQL Database (18.1)
+```
 
-```
-app/
-├── data/
-│   ├── model/          # Data classes (Flavor, Order, User)
-│   └── repository/     # Data sources (Firebase, Room)
-├── domain/
-│   └── usecase/        # Business logic
-├── presentation/
-│   ├── ui/             # Compose screens
-│   ├── viewmodel/      # ViewModels
-│   ├── navigation/     # Navigation setup
-│   └── theme/          # Material Design theme
-└── di/                 # Dependency Injection (Hilt)
-```
+### Design Patterns
+- **Frontend**: MVVM + Repository pattern, Unidirectional Data Flow
+- **Backend**: Layered architecture (Routes → Services → Repositories → Database)
+- **Dependency Injection**: Hilt (Android), Koin (Ktor)
 
 ## 🛠️ Tech Stack
 
-- **Language**: Kotlin 1.9.20
-- **UI**: Jetpack Compose (Material 3)
-- **Architecture**: MVVM + Clean Architecture
-- **Dependency Injection**: Hilt
-- **Backend**: Firebase (Auth, Firestore, Storage)
-- **Image Loading**: Coil
-- **Navigation**: Jetpack Navigation Compose
-- **Database**: Room (offline caching)
-- **Async**: Kotlin Coroutines & Flow
-- **Build**: Gradle Kotlin DSL
+### Frontend (Android)
+- **Language**: Kotlin 1.9
+- **UI**: Jetpack Compose (Material Design 3)
+- **Navigation**: Compose Navigation
+- **DI**: Hilt 2.48
+- **Networking**: Retrofit 2.9, OkHttp 4.11 (30s timeouts)
+- **Local DB**: Room 2.6.1
+- **Image Loading**: Coil 2.5
+- **Async**: Kotlin Coroutines + Flow
 
-## 📋 Prerequisites
+### Backend (Ktor)
+- **Framework**: Ktor 2.3.7
+- **Database**: PostgreSQL 18.1
+- **ORM**: Exposed 0.45.0
+- **Migration**: Flyway 9.22.3
+- **Connection Pool**: HikariCP 5.1.0
+- **Authentication**: JWT (30-day expiry)
+- **Password**: BCrypt (work factor 12)
+- **Serialization**: kotlinx.serialization
+- **Logging**: Logback + SLF4J
 
-- **Android Studio**: Hedgehog (2023.1.1) or later
-- **JDK**: 17 or later
-- **Minimum SDK**: 24 (Android 7.0)
-- **Target SDK**: 34 (Android 14)
+### Deployment
+- **Production**: Render.com (https://ganesh-kulfi-backend.onrender.com)
+- **Database**: Render PostgreSQL 18.1
+- **Build**: Gradle 8.x
+- **Version**: 1.0.0 (code 10000)
 
-## 🚀 Setup Instructions
+## 🚀 Getting Started
 
-### 1. Clone the Repository
+### Prerequisites
 
-The Android project is located in the `android/KulfiDelightAndroid` folder of your main web app repository.
+**For Android:**
+- Android Studio Hedgehog (2023.1.1) or later
+- JDK 17
+- Android SDK 34
+- Kotlin 1.9+
 
-### 2. Configure Firebase
+**For Backend:**
+- JDK 17
+- PostgreSQL 18.1 (or Render managed instance)
+- Gradle 8.x
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your existing project: **kulfi-delight-3d**
-3. Add an Android app:
-   - Package name: `com.ganeshkulfi.app`
-   - Register app
-4. Download `google-services.json`
-5. Replace the existing `app/google-services.json` with your downloaded file
-6. **Important**: Update the `mobilesdk_app_id` in the file
+### Quick Setup
 
-### 3. Open in Android Studio
-
-1. Open Android Studio
-2. Click **File → Open**
-3. Navigate to `android/KulfiDelightAndroid`
-4. Click **OK**
-5. Wait for Gradle sync to complete
-
-### 4. Build the Project
-
-```bash
-# In Android Studio terminal
-./gradlew build
-
-# Or use Android Studio's Build menu
-Build → Make Project
+#### 1. Clone Repository
+```powershell
+git clone https://github.com/yourusername/ganesh-kulfi-system.git
+cd ganesh-kulfi-system
 ```
 
-### 5. Run the App
+#### 2. Backend Setup
 
-1. Connect an Android device or start an emulator
-2. Click the **Run** button (▶️) in Android Studio
-3. Select your device
-4. Wait for installation and launch
-
-## 🔑 Firebase Setup Details
-
-### Enable Authentication
-
-1. In Firebase Console, go to **Authentication**
-2. Click **Get Started**
-3. Enable **Email/Password** provider
-4. Save
-
-### Create Firestore Database
-
-1. Go to **Firestore Database**
-2. Click **Create Database**
-3. Choose **Start in test mode** (for development)
-4. Select your region
-5. Create collections:
-   - `users`
-   - `flavors`
-   - `orders`
-
-### Add Initial Flavors Data
-
-You can add flavors manually in Firestore Console or run the app - it will use default flavors from `Flavor.kt`.
-
-## 📱 App Structure
-
-### Screens
-
-- **Splash Screen**: Initial loading screen
-- **Login/Signup**: User authentication
-- **Home Screen**: 
-  - Hero section
-  - Flavor showcase grid
-  - Brand story
-  - Contact information
-- **Cart**: Shopping cart (Coming soon)
-- **Orders**: Order history (Coming soon)
-- **Profile**: User profile (Coming soon)
-- **Admin Dashboard**: Admin features (Coming soon)
-
-### Data Models
-
-#### Flavor
-```kotlin
-data class Flavor(
-    val id: String,
-    val key: String,
-    val nameEn: String,
-    val nameHi: String,
-    val nameMr: String,
-    val descriptionEn: String,
-    val descriptionHi: String,
-    val descriptionMr: String,
-    val image: String,
-    val tags: List<String>,
-    val price: Int,
-    val stock: Int,
-    val isAvailable: Boolean
-)
+**Option A: Use Deployed Backend (Recommended)**
+```
+No setup needed! The app is already configured to use:
+https://ganesh-kulfi-backend.onrender.com
 ```
 
-#### Order
-```kotlin
-data class Order(
-    val id: String,
-    val userId: String,
-    val items: List<OrderItem>,
-    val totalAmount: Double,
-    val status: OrderStatus,
-    val customerName: String,
-    val customerPhone: String,
-    val customerAddress: String,
-    val createdAt: Timestamp
-)
+**Option B: Run Locally**
+
+1. Install PostgreSQL 18.1
+2. Create database:
+```powershell
+psql -U postgres
+CREATE DATABASE ganesh_kulfi;
 ```
 
-## 🎨 Theming
-
-The app uses a custom Material Design 3 theme matching the web app:
-
-- **Primary**: Saffron (#FFB347) - warmth and vibrancy
-- **Background**: Cream (#F5F5DC) - soft and inviting
-- **Accent**: Deep Brown (#8B4513) - depth and richness
-
-## 🌍 Localization
-
-Add translations to:
-- `res/values/strings.xml` (English)
-- `res/values-hi/strings.xml` (Hindi)
-- `res/values-mr/strings.xml` (Marathi)
-
-The system automatically selects based on device language.
-
-## 🔧 Configuration
-
-### Gradle Dependencies
-
-All dependencies are managed in `app/build.gradle.kts`. Key libraries:
-
-- Jetpack Compose BOM: 2023.10.01
-- Firebase BOM: 32.7.0
-- Hilt: 2.48
-- Coil: 2.5.0
-- Room: 2.6.1
-
-### ProGuard Rules
-
-Release builds use ProGuard rules in `proguard-rules.pro` to keep Firebase and data classes.
-
-## 📦 Building Release APK
-
-1. Generate a signing key:
-```bash
-keytool -genkey -v -keystore kulfi-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias kulfi
+3. Configure environment:
+```powershell
+# Create backend/.env or set environment variables
+DATABASE_URL=jdbc:postgresql://localhost:5432/ganesh_kulfi
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your_password
+JWT_SECRET=your_secret_key
 ```
 
-2. Add to `app/build.gradle.kts`:
-```kotlin
-android {
-    signingConfigs {
-        create("release") {
-            storeFile = file("kulfi-release-key.jks")
-            storePassword = "your-password"
-            keyAlias = "kulfi"
-            keyPassword = "your-password"
-        }
-    }
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
-        }
-    }
-}
+4. Run backend:
+```powershell
+cd backend
+.\gradlew.bat run
+# Server starts at http://localhost:8080
 ```
 
-3. Build:
-```bash
-./gradlew assembleRelease
+5. Database migrations run automatically via Flyway
+
+#### 3. Android App Setup
+
+1. Open project in Android Studio
+2. Wait for Gradle sync
+3. Select build variant:
+   - **debug**: Uses local backend (http://10.0.2.2:8080)
+   - **release**: Uses production backend (https://ganesh-kulfi-backend.onrender.com)
+
+4. Build APK:
+```powershell
+.\gradlew.bat assembleDebug
+# APK: app/build/outputs/apk/debug/app-debug.apk
 ```
 
-APK will be in `app/build/outputs/apk/release/`
-
-## 🚧 Next Steps
-
-### TODO List
-
-- [ ] Add image assets to drawable folders
-- [ ] Implement shopping cart functionality
-- [ ] Create order placement flow
-- [ ] Build admin dashboard screens
-- [ ] Add push notifications
-- [ ] Implement offline mode with Room
-- [ ] Add unit tests
-- [ ] Add UI tests
-- [ ] Implement Google Maps for location
-- [ ] Add payment gateway integration
-
-### Adding Images
-
-Place kulfi images in appropriate drawable folders:
-
-```
-res/
-├── drawable/           # Default images
-├── drawable-hdpi/      # High density
-├── drawable-xhdpi/     # Extra high density
-├── drawable-xxhdpi/    # Extra extra high
-└── drawable-xxxhdpi/   # Extra extra extra high
+Or use provided script:
+```powershell
+.\build.ps1
 ```
 
-Or use Firebase Storage and load with Coil:
+## 📁 Project Structure
 
-```kotlin
-AsyncImage(
-    model = "https://firebasestorage.googleapis.com/...",
-    contentDescription = "Kulfi"
-)
+```
+ganesh-kulfi-system/
+├── app/                          # Android application
+│   ├── src/main/kotlin/com/ganeshkulfi/retailer/
+│   │   ├── data/                 # Repositories, data sources
+│   │   ├── domain/               # Models, use cases
+│   │   ├── presentation/         # UI, ViewModels, Navigation
+│   │   ├── di/                   # Hilt modules
+│   │   └── utils/                # Utilities
+│   └── build.gradle.kts          # Android build config
+│
+├── backend/                      # Ktor backend
+│   ├── src/main/kotlin/com/ganeshkulfi/backend/
+│   │   ├── routes/               # API endpoints
+│   │   ├── services/             # Business logic
+│   │   ├── repositories/         # Data access layer
+│   │   ├── models/               # Data models
+│   │   ├── plugins/              # Ktor plugins (Auth, Routing, etc.)
+│   │   └── Application.kt        # Entry point
+│   ├── scripts/                  # Utility scripts
+│   │   ├── deploy.ps1           # Deployment script
+│   │   ├── quick-start.ps1      # Quick local start
+│   │   └── test-backend.ps1     # API testing
+│   ├── sql/                      # SQL migrations
+│   │   └── setup-database.sql   # Initial schema
+│   ├── utils/                    # Utilities
+│   │   └── api-test-ui.html     # API testing UI
+│   └── build.gradle.kts         # Backend build config
+│
+├── docs/                         # Documentation
+│   ├── HIGH_PRIORITY_FIXES_APPLIED.md
+│   ├── MEDIUM_PRIORITY_FIXES_COMPLETE.md
+│   ├── SECURITY_FIXES_APPLIED.md
+│   ├── RENDER_DEPLOYMENT_GUIDE.md
+│   └── RETAILER_PRICING_GUIDE.md
+│
+├── build.ps1                     # Android build script
+└── README.md                     # This file
+```
+
+## 🔐 Security Features
+
+**Achieved B+ Security Rating (85% - 23/27 issues resolved)**
+
+### Implemented Protections
+
+✅ **Authentication & Authorization**
+- JWT tokens with 30-day expiry
+- BCrypt password hashing (work factor 12)
+- Role-based access control (Admin, Retailer, Factory)
+- Secure password validation (min 6 chars)
+
+✅ **Network Security**
+- HTTPS in production (Render.com)
+- Extended timeouts (30s) for slow networks
+- Request/response validation
+- Error message sanitization
+
+✅ **Input Validation**
+- SQL injection prevention (Exposed ORM)
+- XSS protection
+- Input sanitization on all endpoints
+- File upload validation
+
+✅ **Code Quality**
+- Secrets in environment variables
+- ProGuard/R8 obfuscation ready
+- Secure data storage (Room encrypted)
+- Dependency management
+
+### Pending Improvements (Low Priority)
+- Dependency vulnerability scanning
+- Encrypted SharedPreferences
+- Comprehensive unit tests
+- CI/CD pipeline
+
+## 🎯 User Roles & Permissions
+
+### 1. Admin
+**Full System Access**
+- Manage all flavors (add, edit, delete)
+- View all orders (any retailer)
+- Manage users (create retailers, factory accounts)
+- Inventory control (update stock levels)
+- System statistics and reports
+- Complete order lifecycle management
+
+**Default Credentials:**
+```
+Username: admin@ganeshkulfi.com
+Password: admin123
+```
+
+### 2. Retailer
+**Order & Inventory Access**
+- Browse all flavors
+- Place orders (any quantity)
+- View own orders only
+- Track order status
+- Update profile
+
+**Test Retailer:**
+```
+Username: retailer@example.com
+Password: retailer123
+```
+
+### 3. Factory
+**Production Management**
+- View all orders
+- Update order status
+- Mark orders as completed
+- View inventory levels
+- Cannot place orders
+
+**Test Factory:**
+```
+Username: factory@example.com
+Password: factory123
+```
+
+## 📱 App Features
+
+### For All Users
+- 🔍 **Search & Filter**: Instant search by flavor name, status, retailer
+- 🎨 **Beautiful UI**: Material Design 3 with custom theme (Saffron/Cream)
+- 🌍 **Multi-language**: Automatic language selection (EN/HI/MR)
+- 🔔 **Real-time Updates**: Orders sync automatically
+- 📴 **Offline Support**: Room caching for uninterrupted access
+
+### Admin Features
+- 📊 **Dashboard**: Business overview with statistics
+- 🍦 **Flavor Management**: Add/edit flavors with validation
+- 📦 **Inventory Control**: Bulk stock updates
+- 👥 **User Management**: Create and manage accounts
+- 📈 **Reports**: Order trends and analytics
+
+### Retailer Features
+- 🛒 **Order Placement**: Easy ordering with quantity selection
+- 📋 **Order History**: Complete order tracking
+- 💰 **Pricing Info**: View pricing tiers
+- 📞 **Contact Admin**: Direct support access
+
+### Factory Features
+- 🏭 **Production Queue**: View pending orders
+- ✅ **Order Completion**: Mark orders as fulfilled
+- 📊 **Production Stats**: Daily/weekly reports
+
+## 🌐 API Endpoints
+
+**Base URL (Production):** `https://ganesh-kulfi-backend.onrender.com`
+
+### Authentication
+```http
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/refresh
+```
+
+### Flavors
+```http
+GET    /api/flavors              # Get all flavors
+GET    /api/flavors/{id}         # Get by ID
+POST   /api/flavors              # Create (Admin only)
+PUT    /api/flavors/{id}         # Update (Admin only)
+DELETE /api/flavors/{id}         # Delete (Admin only)
+```
+
+### Orders
+```http
+GET    /api/orders               # Get orders (role-filtered)
+GET    /api/orders/{id}          # Get by ID
+POST   /api/orders               # Create order
+PUT    /api/orders/{id}          # Update order
+PUT    /api/orders/{id}/status   # Update status
+DELETE /api/orders/{id}          # Cancel order
+```
+
+### Users
+```http
+GET    /api/users                # Get all users (Admin only)
+GET    /api/users/me             # Get current user
+PUT    /api/users/{id}           # Update user (Admin only)
+DELETE /api/users/{id}           # Delete user (Admin only)
+```
+
+**Authentication:** All protected endpoints require `Authorization: Bearer <JWT_TOKEN>` header.
+
+## 🧪 Testing
+
+### Backend API Testing
+
+**Option 1: PowerShell Script**
+```powershell
+cd backend
+.\scripts\test-backend.ps1
+```
+
+**Option 2: HTML Test UI**
+```powershell
+# Open backend/utils/api-test-ui.html in browser
+# Enter base URL and test endpoints interactively
+```
+
+**Option 3: Manual Testing**
+```powershell
+# Login
+curl -X POST https://ganesh-kulfi-backend.onrender.com/api/auth/login `
+  -H "Content-Type: application/json" `
+  -d '{"username":"admin@ganeshkulfi.com","password":"admin123"}'
+
+# Get flavors
+curl https://ganesh-kulfi-backend.onrender.com/api/flavors `
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Android Testing
+
+**Unit Tests:**
+```powershell
+.\gradlew.bat test
+```
+
+**Instrumentation Tests:**
+```powershell
+.\gradlew.bat connectedAndroidTest
+```
+
+## 🚀 Deployment
+
+### Backend (Render.com)
+
+**Current Production:** https://ganesh-kulfi-backend.onrender.com
+
+**Manual Deploy:**
+```powershell
+cd backend
+.\scripts\deploy.ps1
+```
+
+**Automatic Deploy:**
+- Push to `main` branch
+- Render detects changes and deploys automatically
+
+**Environment Variables (Render):**
+```env
+DATABASE_URL=<Render PostgreSQL URL>
+JWT_SECRET=<your-secret>
+PORT=8080
+```
+
+### Android (APK Distribution)
+
+**Debug Build:**
+```powershell
+.\build.ps1
+# APK: app/build/outputs/apk/debug/app-debug.apk
+```
+
+**Release Build:**
+```powershell
+.\gradlew.bat assembleRelease
+# APK: app/build/outputs/apk/release/app-release.apk
+```
+
+**Install on Device:**
+```powershell
+adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ## 🐛 Troubleshooting
 
-### Gradle Sync Failed
-- Ensure you have JDK 17 installed
-- Check internet connection
-- Try: File → Invalidate Caches → Invalidate and Restart
+### Backend Issues
 
-### Firebase Authentication Not Working
-- Verify `google-services.json` is correct
-- Check SHA-1 fingerprint in Firebase Console
-- Enable Email/Password in Firebase Authentication
+**Problem: Database connection failed**
+```
+Solution: Check DATABASE_URL environment variable
+Verify PostgreSQL is running (local) or Render service is active
+```
 
-### App Crashes on Launch
-- Check Logcat for error messages
-- Verify Firebase configuration
-- Ensure all permissions are granted
+**Problem: Port already in use**
+```powershell
+# Find process on port 8080
+netstat -ano | findstr :8080
+# Kill process
+taskkill /PID <process_id> /F
+```
+
+**Problem: Migration failed**
+```
+Solution: Drop and recreate database
+Run: psql -U postgres -c "DROP DATABASE ganesh_kulfi; CREATE DATABASE ganesh_kulfi;"
+```
+
+### Android Issues
+
+**Problem: Build failed - SDK not found**
+```
+Solution: Set ANDROID_HOME environment variable
+Or create local.properties with sdk.dir=C:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
+```
+
+**Problem: App crashes on startup**
+```
+Solution: Check backend URL in build.gradle.kts buildConfigField
+Verify backend is running and accessible
+Check Logcat for detailed error messages
+```
+
+**Problem: Login fails**
+```
+Solution: Verify backend is running
+Check network permissions in AndroidManifest.xml
+Use debug build for local backend (10.0.2.2:8080)
+```
+
+## 📊 Version Management
+
+**Current Version:** 1.0.0 (code 10000)
+
+Version format: `MAJOR.MINOR.PATCH`
+- **MAJOR**: Breaking API changes
+- **MINOR**: New features, backwards compatible
+- **PATCH**: Bug fixes
+
+Version code calculation: `MAJOR * 10000 + MINOR * 100 + PATCH`
+
+## 🎤 Interview Highlights
+
+### Technical Achievements
+1. **Full-Stack Development**: Built complete Android app + Ktor backend + PostgreSQL database
+2. **Security**: Achieved B+ rating with JWT auth, BCrypt hashing, RBAC
+3. **Modern Architecture**: MVVM + Clean Architecture, 3-tier separation
+4. **Production Ready**: Deployed on Render.com with automated migrations
+5. **Code Quality**: Organized 30+ files, deleted 75MB unused code, 85% security compliance
+
+### Key Technologies
+- **Android**: Jetpack Compose, Hilt, Retrofit, Room, Coroutines
+- **Backend**: Ktor, Exposed ORM, Flyway, HikariCP, JWT
+- **Database**: PostgreSQL 18.1 with Flyway migrations
+- **DevOps**: Gradle, Git, Render.com, PowerShell automation
+
+### Problem-Solving Examples
+1. **Network Timeouts**: Increased OkHttp timeouts from 10s to 30s for slow connections
+2. **Order Number Conflicts**: Implemented database sequence for unique order numbers
+3. **Password Security**: Migrated from plain text to BCrypt with work factor 12
+4. **Deployment Issues**: Fixed Application.kt receiver type for Render compatibility
+5. **Project Organization**: Restructured 30 files into logical folders (docs, scripts, sql, utils)
+
+### Business Impact
+- **3 User Roles**: Supports admin, retailer, factory workflows
+- **13 Flavors**: Complete kulfi inventory management
+- **Real-time Orders**: Instant order placement and tracking
+- **Multi-language**: Serves English, Hindi, Marathi speakers
+- **Scalable**: Production-ready architecture on Render.com
 
 ## 📄 License
 
@@ -296,14 +504,19 @@ This project is proprietary software for **Shri Ganesh Kulfi**.
 
 ## 👥 Credits
 
-- **Founder**: Ganesh Raut
-- **Location**: Kopargaon, Maharashtra
+- **Business Owner**: Ganesh Raut
+- **Location**: Kopargaon, Maharashtra, India
 - **Developer**: Aditya Tilekar
+- **Tech Stack**: Kotlin, Jetpack Compose, Ktor, PostgreSQL
 
-## 📞 Support
+## 📞 Contact
 
-For issues or questions, please contact the development team.
+For questions or support:
+- **Business**: Shri Ganesh Kulfi, Kopargaon
+- **Technical**: Open an issue on GitHub
 
 ---
 
-**Made with ❤️ for authentic kulfi lovers**
+**Made with ❤️ for authentic kulfi lovers in Kopargaon**
+
+*Version 1.0.0 - Production Ready - January 2026*
